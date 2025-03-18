@@ -7,7 +7,7 @@ def get_raw_data():
   """
   
   # A COMPLETER
-  GNSS_DEVICE_ADDR = 32
+  GNSS_DEVICE_ADDR = 0x20
   mode = GLONASS
   gnss = GNSS(1, GNSS_DEVICE_ADDR)
   gnss.initialisation(mode)

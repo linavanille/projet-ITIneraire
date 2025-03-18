@@ -25,6 +25,8 @@ def get_position(csv_out=None,no_LCD=False):
   GNSS_DEVICE_ADDR = 0x20
   LCD_DEVICE_ADDR = ...
 
+  NB_ACQUISITION = 75
+
   mode=GPS_BEIDOU_GLONASS
   gnss = GNSS(1, GNSS_DEVICE_ADDR)
   gnss.initialisation(mode)
@@ -40,11 +42,12 @@ def get_position(csv_out=None,no_LCD=False):
     lcd_display = LCD(LCD_DEVICE_ADDR)
   
   try:
-    while True:
+    i=0
+    while i<NB_ACQUISITION:
       # Actualisation des données GNSS
       gnss.update()
       if save_csv and gnss.reception_ok:
-        record.append_row([gnss.utc,gnss.latitude.coords_DD,gnss.longitude.coords_DD])
+        record.append_row([gnss.utc,gnss.latitude.coords_DD,gnss.longitude.coords_DD, gnss.altitude])
       
       # A COMPLETER
       latitude = gnss.latitude.coords_DMM
@@ -62,6 +65,7 @@ def get_position(csv_out=None,no_LCD=False):
       # Affichage sur console
       if gnss.reception_ok:
         print("--------------------------------------------------------------")
+        print(f"Acquistion {i}")
         print(gnss.utc)
         print(f"Nombre de satellites utilisés: {gnss.number_satellites}")
         print(f"Latitude : {latitude}")
@@ -69,8 +73,8 @@ def get_position(csv_out=None,no_LCD=False):
         print("")
       else:
         print("Recherche de signal GNSS...")
-        
-      time.sleep(2)
+      i+=1  
+      time.sleep(1)
       
   except KeyboardInterrupt as e:
     print("Arrêt du programme")

@@ -55,8 +55,8 @@ def get_distance(position_target):
   """
   
   # A COMPLETER
-  GNSS_DEVICE_ADDR = 32
-  LCD_DEVICE_ADDR = 39
+  GNSS_DEVICE_ADDR = 20
+  LCD_DEVICE_ADDR = ...
 
   mode = GPS_BEIDOU_GLONASS
   gnss = GNSS(1, GNSS_DEVICE_ADDR)
