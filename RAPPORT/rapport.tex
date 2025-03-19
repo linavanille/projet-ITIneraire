@@ -1,0 +1,84 @@
+\documentclass[a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+\usepackage{geometry}
+  \geometry{hmargin = 3cm, vmargin = 1.5cm} 
+  
+\usepackage{pseudocode}
+
+\usepackage{graphicx}
+\usepackage{caption}
+
+\usepackage{multirow}
+
+\title{Rapport Projet Intégratif ITInéraire}
+\author{Lina El Omari Bouya \\ Chloé Fraimbault \\ Thomas Bonneviale \\ Nizar Duqueh \\ Tom Guénot }
+
+\begin{document}
+\begin{titlepage}
+	\maketitle
+\end{titlepage}
+
+\renewcommand*\contentsname{Sommaire}
+\tableofcontents
+
+%-----------------------------------------------------
+\newpage 
+
+\section{Introdution}
+	\input{introduction/introduction}
+\newpage	 
+
+\section{Présentation des Capteurs à disposition}
+	\input{partie/capteurs/presentation}
+	\subsection{Description et fonctionnement}
+		\input{partie/capteurs/description}
+	\subsection{Avantages et inconvénients}
+		\input{partie/capteurs/av-inc}
+	\subsection{Sources de bruitage et/ou défauts techniques}
+		\input{partie/capteurs/bruit}
+	\subsection{Calibration effectuée}
+		\input{partie/capteurs/calibration}
+	\subsection{Choix des paramètres d'acquisition}
+		\input{partie/capteurs/acquisition}
+	\subsection{Filtrage des signaux bruts}
+		\input{partie/capteurs/filtrage}
+		
+\newpage
+
+\section{Présentation du système d'acquisition complet}
+	\input{partie/systeme/presentation}
+	\subsection{Montage électrique}
+		\input{partie/systeme/montage}
+	\subsection{Descrition du produit}
+		\input{partie/systeme/description}
+	\subsection{Synchronisation des capteurs}
+		\input{partie/systeme/synchro}
+	\subsection{Fusion de donnée détaillée}
+		\input{partie/systeme/fusion}
+
+\newpage
+
+\section{Analyse des performances du système d'acquisition}
+	\input{partie/analyse/presentation}
+	\subsection{Méthodologie pour la détermination du paramètrage du système d'acquisition}
+		\input{partie/analyse/methodologie}
+	\subsection{Description et analyse du choix des méthodes statistiques avec les résultats obtenus}
+		\input{partie/analyse/stat}
+	\subsection{Analyse des résultats de tracking obtenus}
+		\input{partie/analyse/tracking}
+	\subsection{Analyse des résultats obtenus encas de défaillance capteur}
+		\input{partie/analyse/defaillance}
+		
+\newpage
+
+\section{Conclusion}
+	\input{conclusion/conclusion}
+
+\appendix
+
+\end{document}
+
+%\includegraphics[scale=0.4]{elec/schema-cable.png}
+%	\captionof{figure}{Schéma électrique de la Raspberry du robot}
