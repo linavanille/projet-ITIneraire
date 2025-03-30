@@ -1,0 +1,175 @@
+import pandas as pd
+import os
+from utils import convert_gpx_to_csv
+from datetime import datetime, timezone
+
+class Donnees_gps():
+	root = "../output/"
+	sources = ("RPI", "Chloe", "Thomas")
+	timezone = timezone.utc
+
+	#méthode d'import des données
+
+	def __gpx_to_csv(paff):
+		if not os.path.exists(paff+".csv"):
+			convert_gpx_to_csv(paff+".gpx", paff+".csv")
+
+	def __import_Data(paff):
+		for src in Donnees_gps.sources[1:] :
+			Donnees_gps.__gpx_to_csv(Donnees_gps.root+paff+"/GPS_"+paff+"_"+src)
+		
+		return {src:pd.read_csv((Donnees_gps.root+paff+"/GPS_"+paff+"_"+src+".csv")) for src in Donnees_gps.sources}
+
+	#Méthode de formatage de date
+
+	def __reformatage_date_source(self):
+		for elt in self :
+			Donnees_gps.__remplacement_date_formatee(self[elt],1 if elt == 'RPI' else 0)
+			
+	def __traitement_date(chaine,sep):
+		if not isinstance(chaine, str):
+			raise TypeError("la chaine à traiter doit être une Chaine de Caractères")
+		
+		jour, horaire = chaine.split(sep["sep_central"])
+		h = [int(elt) for elt in jour.split(sep["sep_jour"]) + horaire.split(sep["sep_heure"])]
+		return datetime(h[0],h[1],h[2],h[3],h[4],h[5],tzinfo=Donnees_gps.timezone)
+	
+	def __remplacement_date_formatee(data, rpi=False):
+		if not isinstance(data, pd.core.frame.DataFrame) :
+			raise TypeError("n'accepte que des DataFrame")
+
+		c = data.columns
+		if 'UTC' in c :
+			nom_col_date = 'UTC'
+		elif 'Timestamp' in c :
+			nom_col_date = 'Timestamp'
+		else :
+			raise FormatDataCSVInconnuException("La construction du csv ne permet de lire une date correctement : soit UTC soit Timestamp")
+
+		if rpi :
+			if data[nom_col_date][0][4] != "-" :
+				raise FormatDataCSVInconnuException("Mauvaise séparateur de date dans le csv")
+		sep = {"sep_jour":"-","sep_central":"T","sep_heure":":"} if rpi else {"sep_jour":"/","sep_central":"-","sep_heure":":"}
+		
+		data.insert(loc=1, column="Date_Formatee", value=[Donnees_gps.__traitement_date(elt,sep) for elt in data[nom_col_date]])
+		del data[nom_col_date]
+	
+	#initialiseur
+	
+	def __init__(self, chemin):
+		if not os.path.exists(Donnees_gps.root+chemin):
+			raise AcquisitionInexistanteException(f"le dossier d'acquisition {chemin} n'existe pas. \n Possiblités {os.listdir(Donnees_gps.root)}")
+		dossier = os.listdir(Donnees_gps.root+chemin)
+	
+		acces = "GPS_" + chemin + "_"
+		for elt in Donnees_gps.sources:
+			if acces + elt + ".gpx" not in dossier :
+				if acces + elt + ".csv" not in dossier :
+					raise AcquisitionInexistanteException(f"Aucun fichier d'acquisition pour la source {elt}")
+			
+		
+		self._donnees = Donnees_gps.__import_Data(chemin)
+		
+		self.__reformatage_date_source()
+		
+		indice_moins_colonne = Donnees_gps.sources[0]
+		min_nb_colonne = len(self[indice_moins_colonne].columns)
+		for src in Donnees_gps.sources[1:] :
+			if len(self[src].columns) < min_nb_colonne :
+				min_nb_colonne = len(self[src].columns)
+				indice_moins_colonne = src
+		self.champs_avec_Date = self[indice_moins_colonne].columns
+		self.champs = self.champs_avec_Date[1:]
+
+		for elt in self :
+			if len(self[elt].columns) < 4 :
+				print(f"/!\ Warning : Des colonnes sont manquantes pour la source {elt} => {list(self[elt].columns)}")
+				
+
+	#méthode built-in
+	
+	def __getitem__(self,cle):
+		'''renvoi un acces direct aux données, pas de copies'''
+		if isinstance(cle, str) :
+			if cle not in Donnees_gps.sources :
+				raise NomSourceInvalideException(f"le nom de la source n'est pas valide. \n Possibilités {Donnees_gps.sources}")
+			return self._donnees[cle]
+		elif isinstance(cle, tuple) :
+			if len(cle) == 2 :
+				if isinstance(cle[0], str) :
+					if cle[0] not in Donnees_gps.sources :
+						raise NomSourceInvalideException(f"le nom de la source n'est pas valide. \n Possibilités {Donnees_gps.sources}")
+				if isinstance(cle[1],int):
+					if cle[1] < 0 or cle[1] >= len(self[cle[0]]) :
+						raise IndexError(f"indice de la ligne hors limite = {len(self[cle[0]])}, donné = {cle[1]}")
+					return self[cle[0]].loc[cle[1]]
+				if isinstance(cle[1],slice):
+					return self[cle[0]].loc[cle[1]]
+		else :
+			TypeError("format de clé de non supporté")
+
+	def __iter__(self):
+		return self._donnees.__iter__()
+
+	#méthode de stat
+
+	@property
+	def match_date(self):
+
+		ensemble_date = set()
+		for src in Donnees_gps.sources :
+			ensemble_date = ensemble_date | set(self[src]["Date_Formatee"])
+
+		#self.champs = ("Latitude", "Longitude")#, "Altitude") # à déplacer
+		res = pd.DataFrame({"Date":sorted(list(ensemble_date))})
+
+		index = {src:0 for src in Donnees_gps.sources}
+		stock = {src+"_"+c:[] for c in self.champs for src in Donnees_gps.sources}
+
+		for stamp, i in Donnees_gps.__generateur_timestamp_index(res,"Date") :
+			for src in Donnees_gps.sources :
+				if stamp == self[src].Date_Formatee[index[src]] :
+					for c in self.champs :
+						stock[src+"_"+c].append(self[src][c][index[src]])
+					if index[src] < len(self[src])-1 :
+						index[src] += 1
+				else :
+					for c in self.champs :
+						stock[src+"_"+c].append(None)
+
+		for src in Donnees_gps.sources :
+			for c in self.champs :
+				res.insert(loc=1, column=src+"_"+c, value=stock[src+"_"+c])
+		return res 
+
+	@property
+	def match_date_sans_NaN(self):
+		return Donnees_gps.sans_NaN(self.match_date)
+
+	def __generateur_timestamp_index(data,champ):
+		if not isinstance(data, pd.core.frame.DataFrame) :
+			raise TypeError(f"data doit être de type DataFrame, actuellement {type(data)}")
+		if champ not in data.columns :
+			raise KeyError(f"le champ n'existe pas dans le DataFrame, champs disponibles {data.columns}")
+		
+		for i in range(len(data)):
+			yield data[champ][i], i
+
+	def sans_NaN(data):
+		a_drop = data.index[data.isnull().any(axis=1)]
+		return data.drop(a_drop,axis=0)
+	
+	def nb_NaN(df):return df.isnull().values.sum()
+
+	
+class DonneesGPSException(Exception):
+	pass
+
+class AcquisitionInexistanteException(DonneesGPSException):
+	pass
+
+class NomSourceInvalideException(DonneesGPSException):
+	pass
+
+class FormatDataCSVInconnuException(DonneesGPSException):
+	pass
