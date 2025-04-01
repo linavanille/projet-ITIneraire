@@ -2,6 +2,7 @@ import time
 import argparse
 from IMU import read_IMU, initialize_sensors
 from utils import CSVHandler
+import datetime as dt
 
 def get_imu_data(csv_out=None):
     """
@@ -13,8 +14,8 @@ def get_imu_data(csv_out=None):
     
     # Paramètres d'acquisition
     # A COMPLETER
-    accel_range = 4
-    accel_freq = 26
+    accel_range = 8
+    accel_freq = 1.6
     gyro_range = 1000
     gyro_freq = 12.5
 
@@ -42,7 +43,8 @@ def get_imu_data(csv_out=None):
 
             # Enregistrement des données dans le fichier CSV
             if save_csv:
-                record.append_row([time.time(), accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro_z])
+                record.append_row([repr(dt.datetime.fromtimestamp(start_time).replace(tzinfo=dt.timezone.utc)),
+                                  accel_x, accel_y, accel_z, gyro_x, gyro_y, gyro_z])
 
             # Affichage des résultats
             print(f"Accelerometer (g): X={accel_x:.3f}, Y={accel_y:.3f}, Z={accel_z:.3f}")
