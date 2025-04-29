@@ -47,8 +47,6 @@ class FiltreKalman ():
     def x(self, nouveau):
         if not isinstance(nouveau, np.ndarray):
             raise TypeError("u doit être un ndarray")
-        # if self.__para_pas_set() :
-        #     raise ParametreNonDefiniException("Des paramètres sont manquants")
         self._x = nouveau
 
     @property
