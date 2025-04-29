@@ -16,7 +16,7 @@ class FiltreKalman ():
         if not isinstance(H, np.ndarray) :
             raise TypeError("H doit être un np Array")
         if self.__p != np.shape(H)[1] :
-            raise DimensionsNonConformesException(f"dimension de H {np.shape(H)} attendue {"n" ,self.__p}")
+            raise DimensionsNonConformesException(f"dimension de H {np.shape(H)} attendue {n ,self.__p}")
         self._H = H
 
         self._G = G
@@ -166,18 +166,4 @@ if __name__ == "__main__":
     print(filtre.P)
     print()
     print(filtre(np.zeros((1,1)), y_observations=np.array([3.3])))
-
-    # F = np.array([[1, 0, 1, 0],
-    #             [0, 1, 0, 1], 
-    #             [0, 0, 1, 0],
-    #             [0, 0, 0, 1]])
-    # H = np.array([[1, 0, 0, 0],
-    #               [0, 1, 0, 0]])
-    # G = np.array([[0.5, 0], [0, 0.5], [1, 0], [0, 1]])
-    # filtre = FiltreKalman(F, H, G=G, Q=np.zeros((2, 2)))
-    # filtre.x = np.ones((3, 1))
-    # print(filtre.x)
-    # print(filtre(np.zeros((1,2))))
-
-
     
