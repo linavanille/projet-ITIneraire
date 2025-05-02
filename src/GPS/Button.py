@@ -96,8 +96,7 @@ if __name__ == "__main__":
     button = Button(17) 
     
 
-    button.on_press(on_button_press) 
-    
+    button.on_press(on_button_press)   
     try:
         while True:
             pass
