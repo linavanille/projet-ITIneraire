@@ -2,30 +2,37 @@
 """ Module de récupération des mesures"""
 
 import numpy as np
-# from IMU import read_IMU
-# import GPS.gnss
-import logging
+from IMU.IMU import read_IMU
+import GPS.gnss as gs
+import time
+from datetime import datetime as dt
 
-LOG = logging.getLogger()
+GNSS_DEVICE_ADDR = 0x20
 
 class Mesures ():
     def __init__(self, range_acc=8, range_gyro=1000, correction=False):
         """Initialise le regroupement des données des capteurs"""
-        self._data_imu = None
-        if not correction:
-            self._data_gnss = read_IMU(range_acc, range_gyro)
+        self._data_imu = read_IMU(range_acc, range_gyro)
+        self._range_acc = range_acc
+        self._range_gyro = range_gyro
+        mode = gs.GPS_BEIDOU_GLONASS
+        self._data_gnss = gs.GNSS(1, GNSS_DEVICE_ADDR)
+        self._data_gnss.initialisation(mode)
 
     @property
     def gnss(self):
         """Renvoie la position en DMM et l'altitude"""
-        latitude = self.data_gnss.latitude.coords_DMM
-        longitude = self.data_gnss.longitude.coords_DMM
-        altitude = self.data_gnss.altitude
+        self._data_gnss.update()
+        
+        latitude = self._data_gnss.latitude.coords_DMM
+        longitude = self._data_gnss.longitude.coords_DMM
+        altitude = self._data_gnss.altitude
         return np.array([latitude, longitude, altitude])
 
     @property
     def imu(self):
-        return self._rotation(self._data_imu)
+        self._data_imu = read_IMU(self._range_acc, self._range_gyro)
+        return Mesures._rotation(*self._data_imu), dt.now()
 
     def _rotation(x, y, z, theta, phi, psi):
         """Applique une matrice de rotation sur les accélérations"""
@@ -41,7 +48,13 @@ class Mesures ():
                        [np.sin(psi),  np.cos(psi), 0],
                        [0,              0,         1]
                       ])
-        return np.array([x, y, z])@Rx@Ry@Rz
+        return np.array([x, y, z])@Rz@Rx@Ry
 
 if __name__ == "__main__":
+    main = Mesures()
+    print(main.gnss)
+    print("-"*15)
+    print(read_IMU(8, 1000)[:3])
+    print(main.imu)
+    time.sleep(2)
     pass
