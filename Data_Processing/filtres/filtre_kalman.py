@@ -112,15 +112,21 @@ class FiltreKalman ():
             raise TypeError("u doit être un ndarray")
         if u_mesures.shape[0] != self.G.shape[1]:
             raise DimensionsNonConformesException(f"obtenues : {u_mesures.shape} attendues : {self.G.shape[1], 1}")
-        
-        self.__prediction_x(u_mesures)
-        self.__prediction_P()
 
+        print("Prediction:")
+        self.__prediction_x(u_mesures)
+        print(f"x : \n{self.x}")
+        self.__prediction_P()
+        print(f"P_pre : \n {filtre.P}\n\n")
+
+        print("Correction")
         if y_observations is not None:
             self.__correction_K()
+            print(f"K : \n{filtre.K}")
             self.__correction_x(y_observations)
+            print(f"x : \n{self.x}")
             self.__correction_P()
-
+            print(f"P : \n {filtre.P}\n")
         return self.x
 
 
@@ -129,16 +135,19 @@ class FiltreKalman ():
 
     def __prediction_P(self):
         self._P = self.F@self.P@self.F.T+self.Q
+        print(self.F.T)
 
     def __correction_K(self):
-        # self._K = self.P@self.H.T@np.linalg.inv(self.H@self.P@self.H.T + self.R)
-        self._K = self.P@self.H.T*1/4
+        self._K = self.P@self.H.T@np.linalg.inv(self.H@self.P@self.H.T + self.R)
 
     def __correction_x(self, y):
+        print(self.x, self.K, y, self.H)
         self.x = self.x + self.K@(y-self.H@self.x)
 
     def __correction_P(self):
-        (np.eye(self.K.shape[0])-self.K@self.H)@self.P
+        self._P = (np.eye(self.K.shape[0])-self.K@self.H)@self.P
+        print(np.eye(self.K.shape[0]), self.K@self.H, self.P)
+
 
 class KalmanException (Exception):
     pass
@@ -156,14 +165,11 @@ if __name__ == "__main__":
     H = np.array([[1, 0]])
     G = np.array([[0.5], [1]])
     filtre = FiltreKalman(F, H, G=G, Q=np.zeros((2, 2)), R=np.array([[2]]))
-    filtre.x = np.array([[0], [1]])
-    print(filtre.x)
-    print(filtre(np.zeros((1,1)), y_observations=np.array([1.2])))
-    print(filtre.P)
-    print()
-    print(filtre(np.zeros((1,1)), y_observations=np.array([2.1])))
-    print(filtre.K)
-    print(filtre.P)
-    print()
-    print(filtre(np.zeros((1,1)), y_observations=np.array([3.3])))
-    
+    filtre.x = np.array([0, 1]).reshape(2, 1)
+
+    print("=============FILTRE===================")
+    filtre(np.zeros((1,1)), y_observations=np.array([1.2]))
+    print("=============FILTRE===================")
+    filtre(np.zeros((1,1)), y_observations=np.array([2.1]))
+    print("=============FILTRE===================")
+    filtre(np.zeros((1,1)), y_observations=np.array([3.3]))
