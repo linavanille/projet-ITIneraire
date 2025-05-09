@@ -3,63 +3,64 @@
 \usepackage{algpseudocode}
 
 \begin{document}
-Processus qui écrit les données de l'IMU dans une file FIFO avec une fréquence de $10Hz$.
 
+Processus qui écrit les données de l'IMU dans une file FIFO
+avec une fréquence de $10Hz$.
 \begin{algorithmic}[1]
     \Function{get\_donnees\_imu}{\textbf{Queue} $file\_imu$}
-        \State RPI $\gets Mesures$()
+        \State{RPI $\gets Mesures$ ()}
         \While{True}
-            \State data\_imu $\gets$ RPI.imu 
-            \State $file\_imu.put$(data\_imu)
-            \State $time.sleep$(0.1)
-        \EndWhile
-    \EndFunction
+            \State{data\_imu $\gets$ RPI.imu }
+            \State{$file\_imu.put$ (data\_imu)}
+            \State{$time.sleep$ (0.1)}
+        \EndWhile\@
+    \EndFunction\@
 \end{algorithmic}
 
 \vspace{1cm}
 Processus qui écrit les données GNSS dans une file FIFO avec une fréquence de $1Hz$.
 \begin{algorithmic}[1]
     \Function{get\_donnees\_gnss}{\textbf{Queue} $file\_gnss$}
-        \State RPI $\gets Mesures$ () 
+        \State{RPI $\gets Mesures$ ()}
         \While{True}
-            \State data\_gnss $\gets$ RPI.gnss 
-            \State $file\_gnss.put(data\_gnss)$
-            \State $time.sleep(1)$
-        \EndWhile
-    \EndFunction
+            \State{data\_gnss $\gets$ RPI.gnss}
+            \State{$file\_gnss.put(data\_gnss)$}
+            \State{$time.sleep(1)$}
+        \EndWhile\@
+    \EndFunction\@
 \end{algorithmic}
 
 \vspace{1cm}
 Fonction Main qui récupère les données des processus qui tournent en parallèle.
 On filtre les données avec la même fréquence que celle de l'acquisition de l'IMU
-et on effectue une correction à chaque nouvelle donnée GNSS.
+et on effectue une correction à chaque nouvelle donnée GNSS.\@
 
 \begin{algorithmic}[1]
     \Function{main}{}
-        \State filtre $\gets initialisation$()
-        \State file\_imu $\gets Queue()$
-        \State file\_gnss $\gets Queue()$
-        \State p1 $\gets Process($target=get\_donnees\_imu, args=(file\_imu,))
-        \State p2 $\gets Process($target=get\_donnees\_gnss, args=(file\_gnss,))\\
+        \State{filtre $\gets initialisation$ ()}
+        \State{file\_imu $\gets Queue()$}
+        \State{file\_gnss $\gets Queue()$}
+        \State{p1 $\gets Process($target=get\_donnees\_imu, args= (file\_imu,))}
+        \State{p2 $\gets Process($target=get\_donnees\_gnss, args= (file\_gnss,))}\\
         \While{Interruption}
             \If{\textbf{not} $file\_imu.empty()$}
-                \State u $\gets file\_imu.get()$
-            \EndIf
+                \State{u $\gets file\_imu.get()$}
+            \EndIf\@
             \If{\textbf{not} f$ile\_gnss.empty()$}
-                \State y\_new $\gets file\_gnss.get()$
+                \State{y\_new $\gets file\_gnss.get()$}
             \EndIf\\
 
-            \If {y\_new = y\_old}
-                \State $filtre$(u) 
-            \Else 
-                \State $filtre$(u, y)
-                \State y\_old $\gets$ y\_new
+            \If{y\_new = y\_old}
+                \State{$filtre$ (u)}
+            \Else\@ 
+                \State{$filtre$ (u, y)}
+                \State{y\_old $\gets$ y\_new}
             \EndIf\\
 
-            \State $afficher$(filtre.x)
-            \State $time.sleep$(0.1)
-        \EndWhile
-    \EndFunction
+            \State{$afficher$ (filtre.x)}
+            \State{$time.sleep$ (0.1)}
+        \EndWhile\@
+    \EndFunction\@
 \end{algorithmic}
 
 
