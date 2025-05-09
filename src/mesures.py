@@ -12,7 +12,7 @@ GNSS_DEVICE_ADDR = 0x20
 class Mesures ():
     def __init__(self, range_acc=8, range_gyro=1000, correction=False):
         """Initialise le regroupement des données des capteurs"""
-        self._data_imu = read_IMU(range_acc, range_gyro)
+        # self._data_imu = read_IMU(range_acc, range_gyro)
         self._range_acc = range_acc
         self._range_gyro = range_gyro
         mode = gs.GPS_BEIDOU_GLONASS
