@@ -1,7 +1,10 @@
+import numpy as np
+import multiprocessing
+import time
+
 from filtres import *
 from mesures import Mesures
 # from IG
-import numpy as np
 from datetime import datetime as dtime
 
 def F(dt:float, n:int=6):
@@ -21,26 +24,44 @@ def initialisation():
 
     return filtre
 
-if __name__ == "__main__":
-    global data = Mesures()
-    filtre = initialisation()
-
-    t0 = dtime.now()
+def get_donnees_imu (file_imu):
+    rpi = Mesures()
     while True:
-        y = data.gnss
-        while data.gnss == y:
-            u, ti = data.imu
-            dt = dtime.now()-ti
-            filtre.F = F(dt)
-            filtre.G = G(dt)
-            filtre(u)
-            y = data.gnss
-        u, ti = data.imu
-        dt = dtime.now()-ti
-        filtre.F = F(dt)
-        filtre.G = G(dt)
-        filtre(u, y)
+        file_imu.put(rpi.imu)
+        time.sleep(0.1)
 
-        filtre.x
+def get_donnees_gnss(file_gnss):
+    rpi = Mesures()
+    while True:
+        file_gnss.put(rpi.gnss)
+        time.sleep(1)
+
+if __name__ == "__main__":
+    filtre = initialisation()
+    file_imu = multiprocessing.Queue()
+    file_gnss = multiprocessing.Queue()
+
+    p_imu = multiprocessing.Process(target=get_donnees_imu, args=(q_imu,))
+    p_gnss = multiprocessing.Process(target=get_donnees_gnss, args=(q_gnss,))
     
+    y_old = file_gnss.get()
+    while True:
+        try:
+            if not file_imu.empty():
+                u = file_imu.get()
+            if not file_gnss.empty():
+                y_new = file_gnss.get()
+            
+            if y_new == y_old:
+                filtre(u)
+            else:
+                filtre(u, y_new)
+                y_old = y_new
+
+            #afficher(filtre.x)
+            time.sleep(0.1)
+        except KeyboardInterrupt:
+            break
+
+    print("Exit...")
     print(dt)
