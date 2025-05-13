@@ -24,7 +24,7 @@ def get_position(csv_out=None,no_LCD=False):
   
   # A COMPLETER
   GNSS_DEVICE_ADDR = 0x20
-  LCD_DEVICE_ADDR = ...
+  #LCD_DEVICE_ADDR = ...
 
   NB_ACQUISITION = 75
 
@@ -39,8 +39,8 @@ def get_position(csv_out=None,no_LCD=False):
     record = CSVHandler(csv_out)
     record.create_csv_with_header(['UTC','Latitude','Longitude'])
 
-  if not(no_LCD):
-    lcd_display = LCD(LCD_DEVICE_ADDR)
+  #if not(no_LCD):
+    #lcd_display = LCD(LCD_DEVICE_ADDR)
   
   try:
     i=0
@@ -56,12 +56,13 @@ def get_position(csv_out=None,no_LCD=False):
       
       # Affichage sur le LCD
       if gnss.reception_ok:
-        if not(no_LCD):
+        print("recep ok")
+        #if not(no_LCD):
           # A COMPLETER
-          lcd_display.afficher(f"{beau(latitude)}{beau(longitude)}")
-      else:
-        if not(no_LCD):
-          lcd_display.afficher("Recherche de    signal GNSS...")
+          #lcd_display.afficher(f"{beau(latitude)}{beau(longitude)}")
+      #else:
+        #if not(no_LCD):
+          #lcd_display.afficher("Recherche de    signal GNSS...")
       
       # Affichage sur console
       if gnss.reception_ok:
@@ -79,8 +80,8 @@ def get_position(csv_out=None,no_LCD=False):
       
   except KeyboardInterrupt as e:
     print("Arrêt du programme")
-    if not(no_LCD):
-      lcd_display.effacer()
+    #if not(no_LCD):
+      #lcd_display.effacer()
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser()

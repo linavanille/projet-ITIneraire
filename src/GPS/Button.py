@@ -2,7 +2,7 @@ import RPi.GPIO as GPIO
 import time
 import sys
 import RPLCD
-from get_position import get_position
+from GPS import get_position
 import argparse
 import time
 
