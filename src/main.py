@@ -4,7 +4,7 @@ import numpy as np
 from GPS.Button import Button
 from GPS import get_position
 from IMU import get_imu_data
-
+import front
 from filtres import *
 from mesures import Mesures
 # from IG
@@ -22,7 +22,7 @@ def G(dt:float, n:int=3):
                      [dt*np.eye(n)]
                     ])
 
-def initialisation():
+def initialisation_Kalman():
     """Initialisation du filtre de Kalman"""
     H = np.block([np.eye(3), np.zeros((3, 3))])
     filtre = FiltreKalman(F(0), H, G(0)) # Rajouter R et Q
@@ -94,6 +94,12 @@ def acquisition_directe(filtre:FiltreKalman)->None:
             b.cleanup()
             break
 
+def bouton_preacquisition(com_bouton):
+    b = Bouton(17)
+    def press():
+        com_bouton.put("debut")
+    return b
+
 def acquisition_csv(filtre:FiltreKalman)->None:
     """Fonction d'écriture des acquisitions RPi dans des csv"""
 
@@ -131,4 +137,27 @@ def acquisition_csv(filtre:FiltreKalman)->None:
     print("Fin du traitement\n")
 
 if __name__ == "__main__":
-    pass
+    app = Front()
+
+    choix = ''	
+    while choix != "Q" :
+    
+        app.menu()
+                    
+        choix = input("Menu : ").upper()
+    
+        if choix == "1" :
+            app.historique
+        elif choix == "2" :
+            entree = ''
+            com_bouton = multiprocessing.Queue()
+            b = bouton_preacquisition(com_bouton)
+            while entree != R :
+                app.avant_acquisition
+                                
+
+
+        elif choix == "C" :
+            app.credit
+        elif self.help == "H" : 
+            app.help
