@@ -19,16 +19,23 @@ class Mesures ():
         mode = gs.GPS_BEIDOU_GLONASS
         self._data_gnss = gs.GNSS(1, GNSS_DEVICE_ADDR)
         self._data_gnss.initialisation(mode)
+        self._origine = self.gnss()
+
+    @property
+    def origine(self):
+        """Renvoie le tout premier point de l'acquisition"""
+        return self._origine
 
     @property
     def gnss(self):
         """Renvoie la position en DMM et l'altitude"""
         self._data_gnss.update()
         
-        latitude = self._data_gnss.latitude.coords_DMM
-        longitude = self._data_gnss.longitude.coords_DMM
+        latitude = self._data_gnss.latitude.coords_DD
+        longitude = self._data_gnss.longitude.coords_DD
         altitude = self._data_gnss.altitude
-        return np.array([latitude, longitude, altitude])
+
+        return np.array([longitude, longitude, altitude])
 
     @property
     def imu(self):
@@ -51,11 +58,26 @@ class Mesures ():
                       ])
         return np.array([x, y, z])@Rz@Rx@Ry
 
+    def distance_a_lorigine(self, y2:np.Array)->np.Array:
+        """
+        Calcule la distance de deux points GPS projetés sur un plan 2D.
+
+        Utilisation de la formule de distance entre deux points sur Terre en posant 
+        d'abord phi_1 = phi_2 puis theta_1 = theta_2.
+        """
+        y1 = self.origine
+        #Rayon de la Terre
+        R = 6371000
+        return R*np.array([np.acos(np.sin(y1[1])**2+cos(y1[0]-y2[0])*cos(y1[1])**2),
+                           np.acos(np.sin(y1[1])*sin(y2[1])+cos(y1[1])*cos(y2[1])),
+                           0
+                          ])
+
 if __name__ == "__main__":
-    main = Mesures()
-    print(main.gnss)
-    print("-"*15)
-    print(read_IMU(8, 1000)[:3])
-    print(main.imu)
-    time.sleep(2)
+    # main = Mesures()
+    # print(main.gnss)
+    # print("-"*15)
+    # print(read_IMU(8, 1000)[:3])
+    # print(main.imu)
+    # time.sleep(2)
     pass
