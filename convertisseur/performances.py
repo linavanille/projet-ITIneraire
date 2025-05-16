@@ -21,7 +21,6 @@ class Performances:
 		self.dates = np.array([ts.split(" - ")[0].replace("/", "-") for ts in self.timestamps])
 		self.heures = np.array([ts.split(" - ")[1] for ts in self.timestamps])
 
-
 	def conversion_heures_secondes(self, heures):
 		secondes = []
 		for h in heures:
@@ -63,6 +62,7 @@ class Performances:
 	def duree_totale_minutes(self):
 		return self.duree_totale_secondes() / 60
 
+	@staticmethod
 	def calcul_imc(poids_kg, taille_m):
 		imc = poids_kg / (taille_m ** 2)
 		if imc < 18.5:
@@ -115,13 +115,13 @@ class Performances:
 		dt = temps_sec[i] - temps_sec[i - 1]
 		if dt <= 0:
 			return 0
-		d = Performances.distance_entre_2_points(
+		d = self.distance_entre_2_points(
 			self.latitudes[i - 1], self.longitudes[i - 1],
 			self.latitudes[i], self.longitudes[i]
 		)
 		return d / dt
 
-	def distance_entre_2_points(lat1, lon1, lat2, lon2):
+	def distance_entre_2_points(self, lat1, lon1, lat2, lon2):
 		from math import radians, sin, cos, sqrt, atan2
 		R = 6371000  # rayon Terre en m
 		phi1, phi2 = radians(lat1), radians(lat2)
@@ -130,6 +130,101 @@ class Performances:
 		a = sin(dphi / 2) ** 2 + cos(phi1) * cos(phi2) * sin(dlambda / 2) ** 2
 		c = 2 * atan2(sqrt(a), sqrt(1 - a))
 		return R * c
+
+	def distances_parcours(self):
+		distances = []
+		for i in range(len(self.latitudes) - 1):
+			d = self.distance_entre_2_points(
+				self.latitudes[i], self.longitudes[i],
+				self.latitudes[i + 1], self.longitudes[i + 1]
+			)
+			distances.append(d)
+		return np.array(distances)
+
+	def temps_ecoule_secondes(self):
+		secondes = self.conversion_heures_secondes(self.heures)
+		delta_secondes = np.diff(secondes)
+		return delta_secondes
+
+	def temps_entre_deux_points(self, h1, h2):
+		s1 = self.conversion_heures_secondes([h1])[0]
+		s2 = self.conversion_heures_secondes([h2])[0]
+		delta = s2 - s1
+		return delta
+
+	def vitesse_entre_deux_points(self, lat1, lon1, h1, lat2, lon2, h2):
+		distance = self.distance_entre_2_points(lat1, lon1, lat2, lon2)
+		temps = self.temps_entre_deux_points(h1, h2)
+		if temps == 0:
+			return 0.0
+		return round(distance / temps, 3)
+
+	def vitesses_parcours(self):
+		vitesses = []
+		for i in range(len(self.latitudes) - 1):
+			v = self.vitesse_entre_deux_points(
+				self.latitudes[i], self.longitudes[i], self.heures[i],
+				self.latitudes[i + 1], self.longitudes[i + 1], self.heures[i + 1]
+			)
+			vitesses.append(v)
+		return np.round(np.array(vitesses), 3)
+
+	def calories_brulees(self, poids, taille):
+		vitesses = self.vitesses_parcours()
+		calories = 0
+		for v, t in zip(vitesses, self.temps_ecoule_secondes()):
+			v_kmh = v * 3.6
+			if v_kmh < 5:
+				met = 2.5
+			elif v_kmh < 8:
+				met = 5
+			else:
+				met = 8
+			kcal = (met * poids * t) / 3600
+			calories += kcal
+		return round(calories, 2)
+
+	def vitesse_max(self):
+		vitesses = self.vitesses_parcours()
+		return np.max(vitesses) if vitesses.size > 0 else None
+
+	def altitude_moyenne(self):
+		return np.mean(self.altitudes) if self.altitudes.size > 0 else None
+
+	def altitude_min(self):
+		return np.min(self.altitudes) if self.altitudes.size > 0 else None
+
+	def tracer_vitesse(self):
+		vitesses = self.vitesses_parcours()
+		temps = self.temps_ecoule_secondes()
+		temps_cumule = np.insert(np.cumsum(temps), 0, 0)
+		temps_milieu = (temps_cumule[:-1] + temps_cumule[1:]) / 2
+		temps_milieu = np.insert(temps_milieu, 0, 0)
+
+		plt.figure(figsize=(10, 5))
+		plt.plot(temps_milieu[:len(vitesses)], vitesses, label="Vitesse (m/s)", color="blue")
+		plt.xlabel("Temps écoulé (s)")
+		plt.ylabel("Vitesse (m/s)")
+		plt.title("Évolution de la vitesse")
+		plt.grid(True)
+		plt.legend()
+		plt.tight_layout()
+		plt.show()
+
+	def tracer_altitude_distance(self):
+		distances = self.distances_parcours()
+		distance_cumulee = np.insert(np.cumsum(distances), 0, 0)
+
+		plt.figure(figsize=(10, 5))
+		plt.plot(distance_cumulee, self.altitudes, label="Altitude (m)")
+		plt.xlabel("Distance (m)")
+		plt.ylabel("Altitude (m)")
+		plt.title("Altitude en fonction de la distance")
+		plt.grid(True)
+		plt.legend()
+		plt.tight_layout()
+		plt.show()
+
 
 def main():
 	test = Performances("./historique/test.csv")
@@ -145,6 +240,26 @@ def main():
 	for i in pauses:
 		print(f"Pause vers {test.heures[i]} à la position ({test.latitudes[i]}, {test.longitudes[i]})")
 
+	v = test.vitesse_entre_deux_points(test.latitudes[0], test.longitudes[0], test.heures[0],
+	                                    test.latitudes[1], test.longitudes[1], test.heures[1])
+	print(f"Vitesse entre les deux premiers points : {v:.2f} m/s")
+
+	vitesses = test.vitesses_parcours()
+	print(f"Vitesses sur tout le parcours (m/s) : {vitesses}")
+
+	poids = 70  # en kg
+	taille = 1.75  # en m
+
+	kcal = test.calories_brulees(poids, taille)
+	print(f"Calories brûlées : {kcal} kcal")
+
+	print(f"Vitesse maximale : {test.vitesse_max():.2f} m/s")
+	print(f"Altitude moyenne : {test.altitude_moyenne():.2f} m")
+	print(f"Altitude minimale : {test.altitude_min():.2f} m")
+
+	test.tracer_vitesse()
+	test.tracer_altitude_distance()
+
+
 if __name__ == "__main__":
 	main()
-
