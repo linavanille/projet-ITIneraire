@@ -2,6 +2,7 @@ import pandas as pd
 import xml.etree.ElementTree as ET
 import re
 from datetime import datetime
+import numpy as np
 
 def convert_gpx_to_csv(gpx_file, csv_file):
     """
@@ -72,6 +73,35 @@ def correct_csv(csv_file):
         
     df.iloc[:, 1] = df.iloc[:, 1].apply(lambda x: format_date(x))
     df.to_csv(csv_file,index=False)
+
+def calcul_R(csv_path):
+    """Calcule la matrice R pour le filtre de Kalman"""
+    def valeur_position_gps(csv_path):
+        df = pd.read_csv(csv_path)
+        gps_data = df[['Latitude','Longitude','Altitude']]
+        return gps_data
+    donnees = valeur_position_gps(csv_path)
+    long = donnees['Longitude'].tolist()
+    lat = donnees['Latitude'].tolist()
+    alt = donnees['Altitude'].tolist()
+    return np.array([np.var(long), 0,0],
+                    [0, np.var(lat), 0],
+                    [0, 0, np.var(alt)])
+
+def calcul_Q(csv_path):
+    """Calcul la matrice Q pour le filtre de Kalman"""
+    def valeur_accel_xyz(csv_path):
+        df = pd.read_csv(csv_path)
+        accel_data = df[['Accel X', 'Accel Y', 'Accel Z']]
+        return accel_data
+    donnees=valeur_accel_xyz(csv_path)
+    accel_x = donnees['Accel X'].tolist()
+    accel_y = donnees['Accel Y'].tolist()
+    accel_z = donnees['Accel Z'].tolist()
+    return np.array([np.var(accel_x), 0,0],
+                    [0, np.var(accel_y), 0],
+                    [0, 0, np.var(accel_z)])
+
 
 if __name__ == "__main__":
 
