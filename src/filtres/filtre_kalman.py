@@ -27,7 +27,7 @@ class FiltreKalman ():
             self._Q = Q
 
         if R is None :
-            self._R = np.eye(self.__p)
+            self._R = np.eye(np.shape(H)[0])
         else:
             self._R = R
 
@@ -51,7 +51,7 @@ class FiltreKalman ():
 
     @property
     def G(self):
-        return self._x
+        return self._G
 
     @G.setter
     def G(self, nouveau):
@@ -76,7 +76,7 @@ class FiltreKalman ():
     @H.setter
     def H(self, nouveau):
         if not isinstance(nouveau, np.ndarray):
-            raise TypeError("H doit être un ndarray")
+            raise TypeError("H doit être un np.array")
         self.H = nouveau
 
     @property
@@ -86,7 +86,7 @@ class FiltreKalman ():
     @Q.setter
     def Q(self, nouveau):
         if not isinstance(nouveau, np.ndarray):
-            raise TypeError("Q doit être un ndarray")
+            raise TypeError("Q doit être un np.array")
         self.Q = nouveau
 
     @property
@@ -96,7 +96,7 @@ class FiltreKalman ():
     @R.setter
     def R(self, nouveau):
         if not isinstance(nouveau, np.ndarray):
-            raise TypeError("R doit être un ndarray")
+            raise TypeError("R doit être un np.array")
         self.R = nouveau
 
     @property
@@ -109,24 +109,18 @@ class FiltreKalman ():
 
     def __call__(self, u_mesures, y_observations=None):
         if not isinstance(u_mesures, np.ndarray):
-            raise TypeError("u doit être un ndarray")
+            raise TypeError("u doit être un np.array")
         if u_mesures.shape[0] != self.G.shape[1]:
             raise DimensionsNonConformesException(f"obtenues : {u_mesures.shape} attendues : {self.G.shape[1], 1}")
 
-        print("Prediction:")
         self.__prediction_x(u_mesures)
-        print(f"x : \n{self.x}")
         self.__prediction_P()
-        print(f"P_pre : \n {filtre.P}\n\n")
 
-        print("Correction")
         if y_observations is not None:
+        # print("Correction")
             self.__correction_K()
-            print(f"K : \n{filtre.K}")
             self.__correction_x(y_observations)
-            print(f"x : \n{self.x}")
             self.__correction_P()
-            print(f"P : \n {filtre.P}\n")
         return self.x
 
 
@@ -135,19 +129,15 @@ class FiltreKalman ():
 
     def __prediction_P(self):
         self._P = self.F@self.P@self.F.T+self.Q
-        print(self.F.T)
 
     def __correction_K(self):
         self._K = self.P@self.H.T@np.linalg.inv(self.H@self.P@self.H.T + self.R)
 
     def __correction_x(self, y):
-        print(self.x, self.K, y, self.H)
         self.x = self.x + self.K@(y-self.H@self.x)
 
     def __correction_P(self):
         self._P = (np.eye(self.K.shape[0])-self.K@self.H)@self.P
-        print(np.eye(self.K.shape[0]), self.K@self.H, self.P)
-
 
 class KalmanException (Exception):
     pass

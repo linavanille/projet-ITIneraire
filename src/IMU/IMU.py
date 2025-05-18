@@ -1,7 +1,7 @@
 import smbus
 import time
-from accelerometer import accelerometer_configuration, read_accelerometer, CTRL1_XL
-from gyroscope import gyroscope_configuration, read_gyroscope, CTRL2_G
+from IMU.accelerometer import accelerometer_configuration, read_accelerometer, CTRL1_XL
+from IMU.gyroscope import gyroscope_configuration, read_gyroscope, CTRL2_G
 
 # Adresse I2C du capteur LSM6DSO
 # A COMPLETER

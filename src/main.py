@@ -1,14 +1,13 @@
-import multiprocessing
+from multiprocessing import Queue, Process
 import time
 import numpy as np
 import pandas as pd
 from datetime import datetime as dtime
+from GPS.utils import CSVHandler
 
-import front
-from GPS.Button import Button
-from GPS import get_position
-from IMU import get_imu_data
+# import front
 from filtres import *
+from GPS.Button import Button
 from mesures import Mesures
 
 def F(dt:float, n:int=6):
@@ -19,15 +18,17 @@ def F(dt:float, n:int=6):
 
 def G(dt:float, n:int=3):
     """Definition dynamique de la matrice G"""
-    return np.block([[1/2*dt**2*np.eye(n)],
+    g = np.block([[1/2*dt**2*np.eye(n)],
                      [dt*np.eye(n)]
                     ])
+    print(g.shape[1])
+    return g
 
 def initialisation_Kalman()->FiltreKalman:
     """Initialisation du filtre de Kalman"""
     H = np.block([np.eye(3), np.zeros((3, 3))])
     filtre = FiltreKalman(F(0), H, G(0)) # Rajouter R et Q
-    filtre.x = np.zeros(3)
+    filtre.x = np.zeros(6)
 
     return filtre
 
@@ -36,7 +37,6 @@ def get_donnees_imu (rpi:Mesures, file_imu:Queue, arret:Queue)->None:
     # rpi = Mesures()
     while arret.empty():
         file_imu.put(rpi.imu)
-        file_imu.put(i)
         time.sleep(0.1)
 
 def get_donnees_gnss(rpi:Mesures, file_gnss:Queue, arret:Queue)->None:
@@ -49,25 +49,30 @@ def get_donnees_gnss(rpi:Mesures, file_gnss:Queue, arret:Queue)->None:
 def maintenant():
     return None
 
-def acquisition_directe(filtre:FiltreKalman)->None:
+def acquisition_directe(filtre:FiltreKalman)->pd.DataFrame:
     """Fonction d'acquisition en directe des données de la RPi"""
     
+    csv_out = "output/TESTGENERAL.csv"
+    record = CSVHandler(csv_out)
+    record.create_csv_with_header(['UTC','Latitude','Longitude', 'Altitude'])
+
     #initialisation des mesures
     rpi = Mesures()
-    y_old = 0
+    y_old = np.zeros(3)
     y_new = 0
     y = np.zeros(3)
     u = 0
-    result = DataFrame('TimeStamp', 'Longitude', 'Latitude', 'Altitude')
+    filtre.x = np.block([rpi.origine, np.zeros(3)])
+    result = pd.DataFrame(columns=['TimeStamp', 'Longitude', 'Latitude', 'Altitude'])
     
     #initialisation multiprocess
-    file_imu = multiprocessing.Queue()
-    file_gnss = multiprocessing.Queue()
-    file_arret = multiprocessing.Queue()
+    file_imu = Queue()
+    file_gnss = Queue()
+    file_arret = Queue()
     
     #initialisation des differents processus qui tourneront en parallèle
-    p_imu = multiprocessing.Process(target=get_donnees_imu, args=(rpi, file_imu,file_arret,))
-    p_gnss = multiprocessing.Process(target=get_imu_data, args=(rpi,file_gnss,file_arret,))
+    p_imu = Process(target=get_donnees_imu, args=(rpi, file_imu,file_arret,))
+    p_gnss = Process(target=get_donnees_gnss, args=(rpi,file_gnss,file_arret,))
     
     p_imu.start()
     p_gnss.start()
@@ -80,33 +85,35 @@ def acquisition_directe(filtre:FiltreKalman)->None:
     b.on_press(press)
     #initialisation bouton
     
+    j = 0
     #main
     while file_arret.empty():
+        j+=1
         try:            
             if not file_imu.empty():
                 u = file_imu.get()
             if not file_gnss.empty():
                 y_new = file_gnss.get()
             
-            if y_new == y_old:
-                #filtre(u)
-                print(u)
+            if j < 10:
+                filtre(u)
+                record.append_row([rpi.getutc() ,filtre.x[1], filtre.x[0], filtre.x[2]])
             else:
-                #filtre(u, rpi.distance_a_lorigine(y_new))
-                print(u, y_new)
-                y_old = y_new
-                
-            result.append({'TimeStamp': maintenant(),
-                            'Longitude' : filtre.x[0],
-                            'Lattitude' : filtre.x[1],
-                            'Altitude' : filtre.x[2]
-                          })
+                print(filtre(u, y_new))
+                # y_old = y_new
+                j = 0
+            result.loc[len(result)] = ({'TimeStamp': rpi.getutc(),
+                                        'Longitude' : filtre.x[0],
+                                        'Latitude' : filtre.x[1],
+                                        'Altitude' : filtre.x[2]
+                                        })
 
             time.sleep(0.1)
         except KeyboardInterrupt:
             b.cleanup()
             break
     print("Acquisitions finies !\n")
+    return result
 
 def bouton_preacquisition(com_bouton):
     b = Bouton(17)
@@ -149,27 +156,30 @@ def bouton_preacquisition(com_bouton):
 #     print("Fin du traitement\n")
 
 if __name__ == "__main__":
-    app = Front()
+    # app = Front()
 
-    choix = ''	
-    while choix != "Q" :
+    # choix = ''	
+    # while choix != "Q" :
     
-        app.menu()
+    #     app.menu()
                     
-        choix = input("Menu : ").upper()
+    #     choix = input("Menu : ").upper()
     
-        if choix == "1" :
-            app.historique
-        elif choix == "2" :
-            entree = ''
-            com_bouton = multiprocessing.Queue()
-            b = bouton_preacquisition(com_bouton)
-            while entree != R :
-                app.avant_acquisition
+    #     if choix == "1" :
+    #         app.historique
+    #     elif choix == "2" :
+    #         entree = ''
+    #         com_bouton = multiprocessing.Queue()
+    #         b = bouton_preacquisition(com_bouton)
+    #         while entree != R :
+    #             app.avant_acquisition
                                 
 
 
-        elif choix == "C" :
-            app.credit
-        elif self.help == "H" : 
-            app.help
+    #     elif choix == "C" :
+    #         app.credit
+    #     elif self.help == "H" : 
+    #         app.help
+    filtre = initialisation_Kalman()
+    df = acquisition_directe(filtre)
+    print(df.describe())

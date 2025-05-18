@@ -2,7 +2,7 @@ import RPi.GPIO as GPIO
 import time
 import sys
 import RPLCD
-from GPS import get_position
+# from GPS import get_position
 import argparse
 import time
 
@@ -86,8 +86,8 @@ def acquisitions():
 
 
 if __name__ == "__main__":
-    def on_button_press(): # Création d'une fonction callback
-        get_position(no_LCD=True)
+    # def on_button_press(): # Création d'une fonction callback
+        # get_position(no_LCD=True)
         
     #def stop( bouton): # Création d'une fonction callback
         #button.cleanup()

@@ -1,8 +1,7 @@
 import time
-from gnss import *
-from utils import *
+from GPS.gnss import *
+from GPS.utils import *
 import argparse
-
 
 COORDS_DD=0
 COORDS_DMM=1
@@ -51,9 +50,9 @@ def get_position(csv_out=None,no_LCD=False):
         record.append_row([gnss.utc,gnss.latitude.coords_DD,gnss.longitude.coords_DD, gnss.altitude])
       
       # A COMPLETER
-      latitude = gnss.latitude.coords_DMM
-      longitude = gnss.longitude.coords_DMM
-      
+      latitude = gnss.latitude.coords_DD
+      longitude = gnss.longitude.coords_DD
+      altitude = gnss.altitude
       # Affichage sur le LCD
       if gnss.reception_ok:
         print("recep ok")
@@ -72,6 +71,7 @@ def get_position(csv_out=None,no_LCD=False):
         print(f"Nombre de satellites utilisés: {gnss.number_satellites}")
         print(f"Latitude : {latitude}")
         print(f"Longitude : {longitude}")
+        print(f"Altitude : {altitude}")
         print("")
       else:
         print("Recherche de signal GNSS...")

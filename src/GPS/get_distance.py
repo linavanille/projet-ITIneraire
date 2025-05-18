@@ -1,6 +1,6 @@
 import time
-from gnss import *
-from utils import *
+from GPS.gnss import *
+from GPS.utils import *
 import argparse
 import math as m
 
