@@ -38,7 +38,7 @@ class Mesures ():
 
         return np.array([longitude, latitude, altitude])
 
-    def getutc(self):
+    def get_utc(self):
         return self._data_gnss.utc
 
     @property
@@ -61,21 +61,6 @@ class Mesures ():
                        [0,              0,         1]
                       ])
         return np.array([x, y, z])@Rz@Rx@Ry
-
-    def distance_a_lorigine(self, y2:np.array)->np.array:
-        """
-        Calcule la distance de deux points GPS projetés sur un plan 2D.
-
-        Utilisation de la formule de distance entre deux points sur Terre en posant 
-        d'abord phi_1 = phi_2 puis theta_1 = theta_2.
-        """
-        y1 = self.origine
-        #Rayon de la Terre
-        R = 6731
-        return R*np.array([180/np.pi*np.acos(np.sin(y1[1])**2+np.cos(y1[0]-y2[0])*np.cos(y1[1])**2),
-                           180/np.pi*np.acos(np.sin(y1[1])*np.sin(y2[1])+np.cos(y1[1])*np.cos(y2[1])),
-                           y2[2]
-                          ])
 
 if __name__ == "__main__":
     # main = Mesures()

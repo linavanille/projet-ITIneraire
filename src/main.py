@@ -21,18 +21,38 @@ def G(dt:float, n:int=3):
     g = np.block([[1/2*dt**2*np.eye(n)],
                      [dt*np.eye(n)]
                     ])
-    print(g.shape[1])
     return g
 
-def initialisation_Kalman()->FiltreKalman:
+def initialisation_Kalman(dt:float)->FiltreKalman:
     """Initialisation du filtre de Kalman"""
     H = np.block([np.eye(3), np.zeros((3, 3))])
-    filtre = FiltreKalman(F(0), H, G(0)) # Rajouter R et Q
+    # R = None
+    # Q = None
+    filtre = FiltreKalman(F(dt), H, G(dt)) # Rajouter R et Q
     filtre.x = np.zeros(6)
 
     return filtre
 
-def get_donnees_imu (rpi:Mesures, file_imu:Queue, arret:Queue)->None:
+def initialisation_resultats(csv_out)->pd.DataFrame:
+    record = CSVHandler(csv_out)
+    record.create_csv_with_header(['TimeStamp', 
+                                   'Longitude',
+                                   'Latitude',
+                                   'Altitude',
+                                   'Vitesse en x',
+                                   'Vitesse en y',
+                                   'Vitesse en z'])
+
+    df = pd.DataFrame(columns=['TimeStamp', 
+                               'Longitude',
+                               'Latitude',
+                               'Altitude',
+                               'Vitesse en x',
+                               'Vitesse en y',
+                               'Vitesse en z'])
+    return record, df
+
+def get_donnees_imu(rpi:Mesures, file_imu:Queue, arret:Queue)->None:
     """Processus de récupération des données de l'IMU"""
     # rpi = Mesures()
     while arret.empty():
@@ -46,15 +66,10 @@ def get_donnees_gnss(rpi:Mesures, file_gnss:Queue, arret:Queue)->None:
         file_gnss.put(rpi.gnss)
         time.sleep(1)
 
-def maintenant():
-    return None
-
-def acquisition_directe(filtre:FiltreKalman)->pd.DataFrame:
+def acquisition(filtre:FiltreKalman, csv_out:str)->pd.DataFrame:
     """Fonction d'acquisition en directe des données de la RPi"""
     
-    csv_out = "output/TESTGENERAL.csv"
-    record = CSVHandler(csv_out)
-    record.create_csv_with_header(['UTC','Latitude','Longitude', 'Altitude'])
+    output, result = initialisation_resultats(csv_out)
 
     #initialisation des mesures
     rpi = Mesures()
@@ -63,7 +78,6 @@ def acquisition_directe(filtre:FiltreKalman)->pd.DataFrame:
     y = np.zeros(3)
     u = 0
     filtre.x = np.block([rpi.origine, np.zeros(3)])
-    result = pd.DataFrame(columns=['TimeStamp', 'Longitude', 'Latitude', 'Altitude'])
     
     #initialisation multiprocess
     file_imu = Queue()
@@ -97,7 +111,7 @@ def acquisition_directe(filtre:FiltreKalman)->pd.DataFrame:
             
             if j < 10:
                 filtre(u)
-                record.append_row([rpi.getutc() ,filtre.x[1], filtre.x[0], filtre.x[2]])
+                output.append_row([rpi.get_utc() ,filtre.x[1], filtre.x[0], filtre.x[2]])
             else:
                 print(filtre(u, y_new))
                 # y_old = y_new
@@ -105,13 +119,17 @@ def acquisition_directe(filtre:FiltreKalman)->pd.DataFrame:
             result.loc[len(result)] = ({'TimeStamp': rpi.getutc(),
                                         'Longitude' : filtre.x[0],
                                         'Latitude' : filtre.x[1],
-                                        'Altitude' : filtre.x[2]
+                                        'Altitude' : filtre.x[2],
+                                        'Vitesse en x' : filtre.x[3],
+                                        'Vitesse en y' : filtre.x[4],
+                                        'Vitesse en z' : filtre.x[5],
                                         })
 
             time.sleep(0.1)
         except KeyboardInterrupt:
             b.cleanup()
             break
+
     print("Acquisitions finies !\n")
     return result
 
@@ -120,40 +138,6 @@ def bouton_preacquisition(com_bouton):
     def press():
         com_bouton.put("debut")
     return b
-
-# def acquisition_csv(filtre:FiltreKalman)->None:
-#     """Fonction d'écriture des acquisitions RPi dans des csv"""
-
-#     path_donnees_gps = "output/GPS/acquisition"
-#     path_donnees_imu = "output/IMU/acquisition"
-
-#     #initialisation des differents processus qui tourneront en parallèle
-#     p_imu = multiprocessing.Process(target=get_position, args=(path_donnees_gps,))
-#     p_gnss = multiprocessing.Process(target=get_donnees_gnss, args=(path_donnees_gps,))
-
-#     #initialisation bouton
-#     b = Button(17)
-#     def press():
-#         file_arret.put("fin")
-#     b.on_press(press)
-    
-#     #attente de la fin des acquisitions
-#     p_imu.join()
-#     p_gnss.join()
-
-#     #Recuperation des donnees IMU et GPS
-#     print("Traitement en cours...")
-#     j = 0
-#     y = donnees_gps[0]
-#     for i in range(len(donnees_imu)):
-#         u = donnees_imu[i]
-#         if y[0] >= u[0]:
-#             filtre(u[1:], y[:1])
-#             j += 1
-#             y = donnees_gps[j]
-#         else:
-#             filtre(u[:1])
-#     print("Fin du traitement\n")
 
 if __name__ == "__main__":
     # app = Front()
@@ -180,6 +164,6 @@ if __name__ == "__main__":
     #         app.credit
     #     elif self.help == "H" : 
     #         app.help
-    filtre = initialisation_Kalman()
-    df = acquisition_directe(filtre)
+    filtre = initialisation_Kalman(0.1)
+    df = acquisition(filtre)
     print(df.describe())
