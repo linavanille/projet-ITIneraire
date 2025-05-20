@@ -13,7 +13,7 @@ GNSS_DEVICE_ADDR = 0x20
 class Mesures ():
     """Classe permettant de récupérer / traiter les données acquises par la RPi"""
 
-    def __init__(self, range_acc=8, range_gyro=1000, correction=False):
+    def __init__(self, range_acc=8, range_gyro=1000, correction=False)->None:
         """Initialise le regroupement des données des capteurs"""
         self._range_acc = range_acc
         self._range_gyro = range_gyro
@@ -28,7 +28,7 @@ class Mesures ():
         return self._origine
 
     @property
-    def gnss(self):
+    def gnss(self)->np.array:
         """Renvoie la position en DMM et l'altitude"""
         self._data_gnss.update()
         
@@ -42,12 +42,14 @@ class Mesures ():
         return self._data_gnss.utc
 
     @property
-    def imu(self):
+    def imu(self)->np.array:
         self._data_imu = read_IMU(self._range_acc, self._range_gyro)
         return Mesures._rotation(*self._data_imu)
 
-    def _rotation(x, y, z, theta, phi, psi):
+    def _rotation(x, y, z, theta, phi, psi)->np.array:
         """Applique une matrice de rotation sur les accélérations"""
+
+        theta, phi, psi = np.pi/180*theta, np.pi/180*phi, np.pi/180*psi
         Rx = np.array([[1,             0,              0],
                        [0, np.cos(theta), -np.sin(theta)],
                        [0, np.sin(theta),  np.cos(theta)],
@@ -60,7 +62,20 @@ class Mesures ():
                        [np.sin(psi),  np.cos(psi), 0],
                        [0,              0,         1]
                       ])
-        return np.array([x, y, z])@Rz@Rx@Ry
+        return Rx@Ry@Rz@np.array([x, y, z])
+    
+    def _to_cartesien(theta:float, phi:float, R:int=6731)->np.array:
+        """Conversion dans un repère cartésien"""
+        theta, phi = np.pi/180*theta, np.pi/180*phi
+        return np.array([R*np.cos(theta)*np.sin(phi),
+                         R*np.cos(theta)*np.sin(theta),
+                         R*np.cos(theta)])
+
+    def _to_spherique(x:float, y:float, z:float)->np.array:
+        """Conversion dans un repère cartésien"""
+        theta, phi = np.pi/180*theta, np.pi/180*phi
+        R = np.sqrt(x**2+y**2+z**2)
+        return np.array([np.acos(z/R), np.atan(y/x), R])
 
 if __name__ == "__main__":
     # main = Mesures()
@@ -69,4 +84,5 @@ if __name__ == "__main__":
     # print(read_IMU(8, 1000)[:3])
     # print(main.imu)
     # time.sleep(2)
+    # Mesures._rotation(0, 0, -9.81, 30, 45, 0)
     pass
