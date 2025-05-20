@@ -65,14 +65,14 @@ class Mesures ():
         return Rx@Ry@Rz@np.array([x, y, z])
     
     def _to_cartesien(theta:float, phi:float, R:int=6731)->np.array:
-        """Conversion dans un repère cartésien"""
+        """Conversion du repère shérique au cartésien"""
         theta, phi = np.pi/180*theta, np.pi/180*phi
         return np.array([R*np.cos(theta)*np.sin(phi),
                          R*np.cos(theta)*np.sin(theta),
                          R*np.cos(theta)])
 
     def _to_spherique(x:float, y:float, z:float)->np.array:
-        """Conversion dans un repère cartésien"""
+        """Conversion du repère cartésien au sphérique"""
         theta, phi = np.pi/180*theta, np.pi/180*phi
         R = np.sqrt(x**2+y**2+z**2)
         return np.array([np.acos(z/R), np.atan(y/x), R])
