@@ -2,8 +2,10 @@
 """ Module d'implémentation du filtre de Kalman"""
 
 import numpy as np
+import math  as m
 import pandas as pd
 import logging
+
 from utils2 import CSVHandler
 
 LOG = logging.getLogger()
@@ -153,18 +155,12 @@ class ParametreNonDefiniException (KalmanException):
 def filtrage_csv(source:str, csv_out:str, filtre:FiltreKalman)->None:
     """Filtre les données d'un csv et les écrits dans un nouveau csv"""
 
-    # def F(dt:float, n:int=6):
-    #     """Definition dynamique de la matrice F"""
-    #     F_dt = np.eye(n)
-    #     F_dt [0:n//2, n//2:]  = dt*np.eye(n//2)
-    #     return F_dt
-
-    # Préparation des fichiers
+    if not(source.endswith('.csv')):
+        source +='.csv'
     df = pd.read_csv(source)
 
     if not(csv_out.endswith('.csv')):
         csv_out +='.csv'
-
     record = CSVHandler(csv_out)
     record.create_csv_with_header(['UTC','Latitude','Longitude', 'Altitude'])
 
@@ -181,6 +177,48 @@ def filtrage_csv(source:str, csv_out:str, filtre:FiltreKalman)->None:
         filtre(np.zeros(3), y)
         record.append_row([df['UTC'][i] ,filtre.x[0], filtre.x[1], filtre.x[2]])
 
+def filtrage_cartesien(source:str, csv_out:str, filtre:FiltreKalman)->None:
+    """Filtre les données en coordonnées cartésiennes
+    d'un csv et les écrits dans un nouveau csv en coordonnées sphériques"""
+
+    def to_cartesien(theta:float, phi:float, alt:float, R:int=6371000)->np.array:
+        """Conversion du repère shérique au cartésien"""
+
+        theta, phi = m.radians(theta), m.radians(phi)
+        return np.array([(R + alt) * np.cos(theta) * np.cos(phi),
+                         (R + alt) * np.cos(theta) * np.sin(phi),
+                         (R + alt) * np.cos(theta) ])
+
+    def to_spherique(x:float, y:float, z:float)->np.array:
+        """Conversion du repère cartésien au sphérique"""
+        R = 6371000
+        alt = np.sqrt(x**2 + y**2 + z**2) - R
+        return np.array([m.degrees(np.acos(z/R)),
+                         m.degrees(np.atan2(y, x)),
+                         np.abs(alt)/10000])
+
+    if not(source.endswith('.csv')):
+        source +='.csv'
+    df = pd.read_csv(source)
+
+    if not(csv_out.endswith('.csv')):
+        csv_out +='.csv'
+    record = CSVHandler(csv_out)
+    record.create_csv_with_header(['UTC','Latitude','Longitude', 'Altitude'])
+
+    filtre.x = np.block([to_cartesien(df['Latitude'][0],
+                                      df['Longitude'][0],
+                                      df['Altitude'][0]),
+                         0, 0, 0 ])
+
+    for i in range (df.shape[0]):
+        y = to_cartesien(df['Latitude'][i],
+                         df['Longitude'][i],
+                         df['Altitude'][i])
+        filtre(np.zeros(3), y)
+        X = to_spherique(*filtre.x[:3])
+        record.append_row([df['UTC'][i] ,X[0], X[1], X[2]])
+
 if __name__ == "__main__":
     F = np.eye(6)
     F [0:3, 3:]  = np.eye(3)
@@ -191,6 +229,6 @@ if __name__ == "__main__":
     filtre = FiltreKalman(F, H, G, Q=np.zeros((6, 6)))
 
     print("filtrage")
-    filtrage_csv("./output/gnss_acq.csv", "testFiltrage.csv", filtre)
-
+    filtrage_cartesien("./output/gnss_acq.csv", "./output/cartesien.csv", filtre)
     print("Fin du filtrage")
+    print(pd.read_csv("./output/cartesien.csv").isnull().values.sum())
