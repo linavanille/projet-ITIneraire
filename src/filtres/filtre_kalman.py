@@ -1,8 +1,10 @@
-#!/usr/bin/env python 3 
+#!/usr/bin/env python 3
 """ Module d'implémentation du filtre de Kalman"""
 
 import numpy as np
+import pandas as pd
 import logging
+from utils2 import CSVHandler
 
 LOG = logging.getLogger()
 
@@ -58,7 +60,7 @@ class FiltreKalman ():
         if not isinstance(nouveau, np.ndarray):
             raise TypeError("G doit être un ndarray")
         self._G = nouveau
-    
+
     @property
     def F(self):
         return self._F
@@ -68,7 +70,7 @@ class FiltreKalman ():
         if not isinstance(nouveau, np.ndarray):
             raise TypeError("F doit être un ndarray")
         self.F = nouveau
-    
+
     @property
     def H(self):
         return self._H
@@ -148,18 +150,47 @@ class DimensionsNonConformesException (KalmanException):
 class ParametreNonDefiniException (KalmanException):
     pass
 
+def filtrage_csv(source:str, csv_out:str, filtre:FiltreKalman)->None:
+    """Filtre les données d'un csv et les écrits dans un nouveau csv"""
+
+    # def F(dt:float, n:int=6):
+    #     """Definition dynamique de la matrice F"""
+    #     F_dt = np.eye(n)
+    #     F_dt [0:n//2, n//2:]  = dt*np.eye(n//2)
+    #     return F_dt
+
+    # Préparation des fichiers
+    df = pd.read_csv(source)
+
+    if not(csv_out.endswith('.csv')):
+        csv_out +='.csv'
+
+    record = CSVHandler(csv_out)
+    record.create_csv_with_header(['UTC','Latitude','Longitude', 'Altitude'])
+
+    filtre.x = np.array([df['Latitude'][0],
+                      df['Longitude'][0],
+                      df['Altitude'][0],
+                      0, 0, 0 ])
+
+    for i in range (df.shape[0]):
+        y = np.array([df['Latitude'][i],
+                      df['Longitude'][i],
+                      df['Altitude'][i]
+                     ])
+        filtre(np.zeros(3), y)
+        record.append_row([df['UTC'][i] ,filtre.x[0], filtre.x[1], filtre.x[2]])
 
 if __name__ == "__main__":
-    F = np.array([[1, 1], 
-                [0, 1]])
-    H = np.array([[1, 0]])
-    G = np.array([[0.5], [1]])
-    filtre = FiltreKalman(F, H, G=G, Q=np.zeros((2, 2)), R=np.array([[2]]))
-    filtre.x = np.array([0, 1]).reshape(2, 1)
+    F = np.eye(6)
+    F [0:3, 3:]  = np.eye(3)
+    H = np.block([np.eye(3), np.zeros((3, 3))])
+    G = np.block([[(1/2)**2*np.eye(3)],[np.eye(3)]])
+    print("initialisation")
+    print(G.shape)
+    filtre = FiltreKalman(F, H, G, Q=np.zeros((6, 6)))
 
-    print("=============FILTRE===================")
-    filtre(np.zeros((1,1)), y_observations=np.array([1.2]))
-    print("=============FILTRE===================")
-    filtre(np.zeros((1,1)), y_observations=np.array([2.1]))
-    print("=============FILTRE===================")
-    filtre(np.zeros((1,1)), y_observations=np.array([3.3]))
+    print("filtrage")
+    filtrage_csv("./output/gnss_acq.csv", "testFiltrage.csv", filtre)
+
+    print("Fin du filtrage")

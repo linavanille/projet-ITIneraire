@@ -6,12 +6,13 @@ import os
 def plot_GNSS(file_path):
     """
     Fonction pour tracer les données GNSS d'un parcours sur une carte OpenStreetMap, enregistrée dans un fichier HTML.
-    
+
     Arguments:
     - file_path: Le chemin du fichier CSV contenant les données GNSS.
     """
     out_path,filename = os.path.split(file_path)
     data = pd.read_csv(file_path)
+    out_path = "./output/HTML/"
 
     m = folium.Map(location=[data['Latitude'][0], data['Longitude'][0]], zoom_start=12)
 
@@ -26,5 +27,5 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
 	parser.add_argument('path', type=str)
 	args = parser.parse_args()
-	
+
 	plot_GNSS(args.path)
