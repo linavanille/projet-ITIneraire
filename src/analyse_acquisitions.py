@@ -26,6 +26,9 @@ def G(dt:float, n:int=3):
                 ])
     return g
 
+def get_acquisitions_imu()->str:
+    return root_source+"DoubleAcquisition/acquisitionIMU"
+
 def get_acquisitions(type:str):
     """selection du dictionnaire d'acquisition"""
 
@@ -33,8 +36,9 @@ def get_acquisitions(type:str):
 
     if type == "filtre":
         root_destination = "./output/CSV_Filtre/"
-    elif type == "filtre_preciction":
-        root_destination = "./output/TestFiltrePrediction"
+    elif type == "filtre_prediction":
+        root_destination = "./output/TestFiltrePrediction/"
+        return {root_source+"DoubleAcquisition/acquisitionGPS": root_destination+'magellan'},
     elif type == "raw":
         root_destination = ""
 
@@ -48,9 +52,9 @@ def get_acquisitions(type:str):
         }
 
 def generation_fichiers(type_data_input:str,
-                                    filtrage:Callable[str,str]=filtrage_csv,
-                                    Q:np.array=None,
-                                    R:np.array=None)->None:
+                        filtrage:Callable[str,str]=filtrage_csv,
+                        Q:np.array=None,
+                        R:np.array=None)->None:
     """fonction de génération des fichiers
 
         type_data_input: str
