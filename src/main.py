@@ -35,21 +35,15 @@ def initialisation_Kalman(dt:float)->FiltreKalman:
 
 def initialisation_resultats(csv_out)->pd.DataFrame:
     record = CSVHandler(csv_out)
-    record.create_csv_with_header(['TimeStamp', 
+    record.create_csv_with_header(['TimeStamp',
                                    'Longitude',
                                    'Latitude',
-                                   'Altitude',
-                                   'Vitesse en x',
-                                   'Vitesse en y',
-                                   'Vitesse en z'])
+                                   'Altitude',])
 
-    df = pd.DataFrame(columns=['TimeStamp', 
+    df = pd.DataFrame(columns=['TimeStamp',
                                'Longitude',
                                'Latitude',
-                               'Altitude',
-                               'Vitesse en x',
-                               'Vitesse en y',
-                               'Vitesse en z'])
+                               'Altitude'])
     return record, df
 
 def get_donnees_imu(rpi:Mesures, file_imu:Queue, arret:Queue)->None:
@@ -68,7 +62,7 @@ def get_donnees_gnss(rpi:Mesures, file_gnss:Queue, arret:Queue)->None:
 
 def acquisition(filtre:FiltreKalman, csv_out:str)->pd.DataFrame:
     """Fonction d'acquisition en directe des données de la RPi"""
-    
+
     output, result = initialisation_resultats(csv_out)
 
     #initialisation des mesures
@@ -78,53 +72,50 @@ def acquisition(filtre:FiltreKalman, csv_out:str)->pd.DataFrame:
     y = np.zeros(3)
     u = 0
     filtre.x = np.block([rpi.origine, np.zeros(3)])
-    
+
     #initialisation multiprocess
     file_imu = Queue()
     file_gnss = Queue()
     file_arret = Queue()
-    
+
     #initialisation des differents processus qui tourneront en parallèle
     p_imu = Process(target=get_donnees_imu, args=(rpi, file_imu,file_arret,))
     p_gnss = Process(target=get_donnees_gnss, args=(rpi,file_gnss,file_arret,))
-    
+
     p_imu.start()
     p_gnss.start()
     print("Acquisitions en cours...")
-        
+
     b = Button(17)
     def press():
         file_arret.put("fin")
     time.sleep(1)
     b.on_press(press)
     #initialisation bouton
-    
+
     j = 0
     #main
     while file_arret.empty():
         j+=1
-        try:            
+        try:
             if not file_imu.empty():
                 u = file_imu.get()
             if not file_gnss.empty():
                 y_new = file_gnss.get()
-            
-            if j < 10:
-                filtre(u)
-                output.append_row([rpi.get_utc() ,filtre.x[1], filtre.x[0], filtre.x[2]])
-            else:
-                print(filtre(u, y_new))
-                # y_old = y_new
-                j = 0
-            result.loc[len(result)] = ({'TimeStamp': rpi.getutc(),
-                                        'Longitude' : filtre.x[0],
-                                        'Latitude' : filtre.x[1],
-                                        'Altitude' : filtre.x[2],
-                                        'Vitesse en x' : filtre.x[3],
-                                        'Vitesse en y' : filtre.x[4],
-                                        'Vitesse en z' : filtre.x[5],
-                                        })
 
+            if y_old == y_new:
+                filtre(u)
+            else:
+                filtre(u, y_new)
+                y_old = y_new
+                j = 0
+
+            output.append_row([rpi.get_utc(), filtre.x[0], filtre.x[1], filtre.x[2]])
+            result.loc[len(result)] = ({'TimeStamp': rpi.getutc(),
+                                        'Latitude' : filtre.x[1],
+                                        'Longitude' : filtre.x[0],
+                                        'Altitude' : filtre.x[2],
+                                        })
             time.sleep(0.1)
         except KeyboardInterrupt:
             b.cleanup()
@@ -142,13 +133,13 @@ def bouton_preacquisition(com_bouton):
 if __name__ == "__main__":
     # app = Front()
 
-    # choix = ''	
+    # choix = ''
     # while choix != "Q" :
-    
+
     #     app.menu()
-                    
+
     #     choix = input("Menu : ").upper()
-    
+
     #     if choix == "1" :
     #         app.historique
     #     elif choix == "2" :
@@ -157,12 +148,12 @@ if __name__ == "__main__":
     #         b = bouton_preacquisition(com_bouton)
     #         while entree != R :
     #             app.avant_acquisition
-                                
+
 
 
     #     elif choix == "C" :
     #         app.credit
-    #     elif self.help == "H" : 
+    #     elif self.help == "H" :
     #         app.help
     filtre = initialisation_Kalman(0.1)
     df = acquisition(filtre)
