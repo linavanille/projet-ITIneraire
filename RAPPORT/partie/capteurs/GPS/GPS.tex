@@ -1,0 +1,61 @@
+\section{Module GPS DFRobot TEL0157}
+
+\vspace{2em}
+
+\subsection{Description et fonctionnement}
+
+Le DFRobot TEL0157 est un module de réception GNSS multi-constellation compact, compatible UART et I2C.  
+Il intègre une puce Quectel L76K capable d'exploiter plusieurs systèmes de navigation par satellites simultanément (GPS, GLONASS, BeiDou, etc.), ce qui lui permet de fournir rapidement la position (longitude, latitude, altitude) et l’heure UTC avec une meilleure précision qu'un GPS mono-constellation.  
+En pratique, le module calcule sa position en mesurant le temps de propagation des signaux de plusieurs satellites et en effectuant une trilatération. Un minimum de 4 satellites est requis pour une solution 3D complète (latitude, longitude, altitude + temps).  
+Lorsqu’il capte suffisamment de satellites, le TEL0157 délivre une position mise à jour chaque seconde (fréquence de 1 Hz, configurable) au format standard NMEA-0183.  
+Les trames NMEA sont des messages texte ASCII contenant les informations GNSS : par exemple, la trame \texttt{\$GNRMC} fournit l’heure, la position (latitude/longitude), la vitesse sol et la date, tandis que la trame \texttt{\$GNGSA} indique le type de fix (2D/3D) et les indices de dilution de précision PDOP, HDOP, VDOP.  
+Le TEL0157 s’alimente en 3,3–5,5 V et consomme environ 40 mA. Une LED intégrée indique l’état du fix (rouge si aucun signal, vert dès que la position est verrouillée), ce qui est pratique pour l’utilisateur.  
+En résumé, ce module fournit une solution plug-and-play pour obtenir en temps réel les coordonnées GPS du porteur, base de l’estimation de trajectoire dans notre projet.
+
+\vspace{2em}
+
+\subsection{Avantages et inconvénients}
+
+\textbf{Avantages :}  
+Le module GPS TEL0157 présente plusieurs atouts pour une application de suivi. Sa compatibilité multi-constellation améliore la disponibilité des satellites et la précision de la localisation. En combinant GPS, GLONASS, BeiDou et éventuellement Galileo ou QZSS, il augmente le nombre de satellites utilisables et améliore la rapidité du fix, même en milieu urbain ou sous les arbres.  
+Il offre également une bonne sensibilité de réception (jusqu’à –162 dBm), permettant de capter des signaux faibles et de maintenir le suivi en environnement moyennement difficile (vallées, zones boisées légères).  
+Son exactitude nominale est d’environ 2 m CEP en horizontal, suffisante pour suivre un utilisateur avec une faible erreur de distance.  
+De plus, il est simple à interfacer grâce à l’UART et aux trames NMEA standard, et son format compact ainsi que sa faible consommation (40 mA) en font un capteur embarquable et peu gourmand en énergie.
+
+\textbf{Inconvénients :}  
+Le module dépend d’une vue dégagée du ciel, ce qui limite sa précision en environnement dense (forêt, canyon urbain). Les réflexions des signaux (multipath) peuvent générer des erreurs de plusieurs mètres.  
+La fréquence de 1 Hz par défaut, bien que suffisante pour la marche, est limitée pour des mouvements rapides ou des virages brusques.  
+Le temps de verrouillage initial est d’environ 30 s à froid, et la précision verticale est généralement plus faible (erreur > 3–4 m).  
+Enfin, ce module n’intègre pas de corrections différentielles (WAAS/EGNOS, RTK), ce qui limite sa précision absolue et nécessite une fusion avec d’autres capteurs pour des résultats optimaux.
+
+\vspace{2em}
+
+\subsection{Sources de bruitage et défauts techniques}
+
+Les signaux GNSS sont perturbés par la traversée de l’ionosphère et de la troposphère, générant des retards et des imprécisions, notamment sur la fréquence L1. Les erreurs d’orbite, d’horloge des satellites et le bruit interne du module contribuent également au bruit global.  
+Le phénomène de multipath, dû aux réflexions des signaux sur les bâtiments ou le sol, provoque des écarts de position et des trajectoires erratiques en milieu urbain.  
+Les indices DOP (PDOP, HDOP, VDOP) reflètent la géométrie des satellites et influencent la précision ; un PDOP inférieur à 3 est excellent, mais au-delà de 8 la qualité se dégrade fortement. L’activation de toutes les constellations (GPS, GLONASS, BeiDou, Galileo) permet d’augmenter le nombre de satellites visibles et d’améliorer la robustesse du positionnement.  
+Enfin, bien que rare dans notre contexte, des perturbations intentionnelles comme le brouillage (jamming) ou le spoofing peuvent aussi affecter la fiabilité du signal.
+
+\vspace{2em}
+
+\subsection{Calibration effectuée}
+
+Nous avons réalisé une série d’expérimentations sur le terrain pour évaluer la précision et la stabilité du module. Des parcours identiques ont été répétés à différentes fréquences d’échantillonnage (1 Hz, 5 Hz, 10 Hz), en comparant les trajectoires à une distance de référence. Les écarts mesurés étaient faibles et la variance entre les fréquences négligeable, sans amélioration notable de la précision ou de la réactivité.  
+Nous avons donc retenu la fréquence par défaut de 1 Hz, suffisante pour notre application et limitant la charge de traitement et le volume de données.
+
+\vspace{2em}
+
+\subsection{Choix des paramètres d’acquisition}
+
+Les paramètres d’acquisition ont été définis en fonction des caractéristiques du module et des besoins du projet. La fréquence de 1 Hz a été conservée car elle offre un bon compromis entre précision et volume de données, tout en assurant une compatibilité optimale avec l’interface UART à 9600 bauds.  
+Toutes les constellations disponibles (GPS, GLONASS, BeiDou, Galileo) ont été activées pour maximiser le nombre de satellites visibles et améliorer la précision et la stabilité du fix, notamment en milieu urbain.
+
+\vspace{2em}
+
+\subsection{Filtrage des signaux bruts}
+
+Pour compenser les fluctuations et améliorer la qualité des trajectoires, un filtre de Kalman a été appliqué aux données GPS. Ce filtre combine les positions mesurées et leur incertitude pour estimer plus précisément la position réelle. Il permet de lisser le tracé, de corriger les sauts ou les erreurs ponctuelles, et d’assurer une trajectoire plus stable et exploitable.  
+Ce traitement garantit une meilleure fiabilité des données GPS, en particulier lorsqu’elles sont fusionnées avec d’autres capteurs (IMU), et s’avère essentiel pour obtenir une trajectoire crédible dans des conditions variées.
+
+
