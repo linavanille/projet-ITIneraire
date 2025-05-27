@@ -13,7 +13,7 @@ GNSS_DEVICE_ADDR = 0x20
 class Mesures ():
     """Classe permettant de récupérer / traiter les données acquises par la RPi"""
 
-    def __init__(self, range_acc=8, range_gyro=1000, correction=False):
+    def __init__(self, range_acc=8, range_gyro=1000, correction=False)->None:
         """Initialise le regroupement des données des capteurs"""
         self._range_acc = range_acc
         self._range_gyro = range_gyro
@@ -28,7 +28,7 @@ class Mesures ():
         return self._origine
 
     @property
-    def gnss(self):
+    def gnss(self)->np.array:
         """Renvoie la position en DMM et l'altitude"""
         self._data_gnss.update()
         
@@ -38,16 +38,18 @@ class Mesures ():
 
         return np.array([longitude, latitude, altitude])
 
-    def getutc(self):
+    def get_utc(self):
         return self._data_gnss.utc
 
     @property
-    def imu(self):
+    def imu(self)->np.array:
         self._data_imu = read_IMU(self._range_acc, self._range_gyro)
         return Mesures._rotation(*self._data_imu)
 
-    def _rotation(x, y, z, theta, phi, psi):
+    def _rotation(x, y, z, theta, phi, psi)->np.array:
         """Applique une matrice de rotation sur les accélérations"""
+
+        theta, phi, psi = np.pi/180*theta, np.pi/180*phi, np.pi/180*psi
         Rx = np.array([[1,             0,              0],
                        [0, np.cos(theta), -np.sin(theta)],
                        [0, np.sin(theta),  np.cos(theta)],
@@ -60,22 +62,20 @@ class Mesures ():
                        [np.sin(psi),  np.cos(psi), 0],
                        [0,              0,         1]
                       ])
-        return np.array([x, y, z])@Rz@Rx@Ry
+        return Rx@Ry@Rz@np.array([x, y, z])
+    
+    def _to_cartesien(theta:float, phi:float, R:int=6731)->np.array:
+        """Conversion du repère shérique au cartésien"""
+        theta, phi = np.pi/180*theta, np.pi/180*phi
+        return np.array([R*np.cos(theta)*np.sin(phi),
+                         R*np.cos(theta)*np.sin(theta),
+                         R*np.cos(theta)])
 
-    def distance_a_lorigine(self, y2:np.array)->np.array:
-        """
-        Calcule la distance de deux points GPS projetés sur un plan 2D.
-
-        Utilisation de la formule de distance entre deux points sur Terre en posant 
-        d'abord phi_1 = phi_2 puis theta_1 = theta_2.
-        """
-        y1 = self.origine
-        #Rayon de la Terre
-        R = 6731
-        return R*np.array([180/np.pi*np.acos(np.sin(y1[1])**2+np.cos(y1[0]-y2[0])*np.cos(y1[1])**2),
-                           180/np.pi*np.acos(np.sin(y1[1])*np.sin(y2[1])+np.cos(y1[1])*np.cos(y2[1])),
-                           y2[2]
-                          ])
+    def _to_spherique(x:float, y:float, z:float)->np.array:
+        """Conversion du repère cartésien au sphérique"""
+        theta, phi = np.pi/180*theta, np.pi/180*phi
+        R = np.sqrt(x**2+y**2+z**2)
+        return np.array([np.acos(z/R), np.atan(y/x), R])
 
 if __name__ == "__main__":
     # main = Mesures()
@@ -84,4 +84,5 @@ if __name__ == "__main__":
     # print(read_IMU(8, 1000)[:3])
     # print(main.imu)
     # time.sleep(2)
+    # Mesures._rotation(0, 0, -9.81, 30, 45, 0)
     pass

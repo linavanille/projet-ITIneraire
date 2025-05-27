@@ -1,1 +1,1 @@
-from .filtre_kalman import FiltreKalman
+from .filtre_kalman import FiltreKalman, filtrage_csv, filtrage_cartesien
