@@ -1,0 +1,78 @@
+\section{Traitement des données – Performances}
+
+Dans le cadre du projet, nous avons développé un script Python nommé \texttt{performances.py} pour analyser les données issues d’un enregistrement GPS. Ce script automatise le traitement d’un fichier CSV contenant le parcours, et génère différents indicateurs de performance ainsi que des visualisations.
+
+\vspace{1em}
+
+L’objectif est double: évaluer la qualité du suivi GPS (précision, cohérence des données) et estimer l’effort physique fourni au cours du trajet. Le script traite les données étape par étape : nettoyage, analyse statistique, calcul de métriques (distance, vitesse moyenne, altitude, etc.) et création de graphiques. Ce processus automatisé permet un gain de temps et facilite la détection d’éventuelles anomalies ou incohérences.
+
+\vspace{2em}
+
+\subsection{Données brutes et prétraitement}
+
+Les données collectées sont enregistrées sous forme de tableau CSV contenant, pour chaque point GPS, un horodatage (date et heure), la latitude, la longitude et l’altitude.
+
+\vspace{1em}
+
+Avant toute analyse, les données brutes sont nettoyées pour garantir leur fiabilité. Le script filtre les lignes incorrectes, convertit les valeurs en numériques, puis extrait séparément la date et l’heure à partir de l’horodatage. Chaque heure est ensuite transformée en nombre de secondes écoulées depuis minuit, ce qui permet de calculer précisément les durées entre points successifs.
+
+\vspace{1em}
+
+Ce prétraitement automatise le formatage et prépare les données pour une analyse rigoureuse, sans intervention manuelle.
+
+\vspace{2em}
+
+\subsection{Indicateurs de performance}
+
+Une fois les données nettoyées, le script calcule automatiquement plusieurs indicateurs pour évaluer le parcours et l’effort physique associé.
+
+\vspace{1em}
+
+Il commence par identifier les points de départ et d’arrivée à partir des premières et dernières lignes valides. La distance totale parcourue est calculée à l’aide de la formule de Haversine, prenant en compte la courbure de la Terre. La durée est extraite des horodatages convertis en secondes, ce qui permet ensuite de calculer la vitesse moyenne et de détecter la vitesse maximale atteinte.
+
+\vspace{1em}
+
+L’analyse inclut aussi l’altitude maximale, minimale et moyenne, donnant une vision du relief rencontré. Le script estime les calories brûlées à l’aide du poids, de la taille, et de la vitesse de l’utilisateur, via un facteur MET adapté à chaque niveau d’intensité.
+
+\vspace{1em}
+
+Il détecte également les pauses en repérant les périodes où la vitesse chute sous un certain seuil. Chaque pause est enregistrée avec son heure et sa position GPS. Tous ces calculs sont réalisés automatiquement à partir des données brutes, sans ajustement manuel, ce qui garantit une analyse fiable et reproductible.
+
+\vspace{2em}
+
+\subsection{Graphiques de visualisation des données}
+
+En complément des indicateurs chiffrés, le script génère plusieurs graphiques pour visualiser le déroulement du parcours et repérer d’éventuelles anomalies.
+
+\vspace{1em}
+
+Le premier graphique est le profil altimétrique, qui trace l’altitude en fonction du temps écoulé. Il permet d’identifier les phases de montée ou de descente, et de vérifier la cohérence des altitudes enregistrées.
+
+\vspace{1em}
+
+Le deuxième graphique représente l’évolution de la vitesse en fonction du temps. Chaque point correspond à une vitesse instantanée entre deux points GPS. Cela permet de repérer les accélérations, ralentissements ou arrêts. Un pic isolé ou une vitesse nulle prolongée permet d’identifier respectivement des erreurs GPS ou des pauses.
+
+\vspace{1em}
+
+Le troisième graphique trace l’altitude en fonction de la distance parcourue. Contrairement au profil temporel, il représente le relief en fonction de la progression réelle sur le terrain. Cela aide à visualiser directement où se trouvent les pentes les plus raides ou les phases de plat.
+
+\vspace{1em}
+
+Tous les graphiques sont générés automatiquement à partir des données filtrées, avec des axes clairs (temps, distance, altitude, vitesse). Ils complètent l’analyse numérique en offrant une lecture visuelle intuitive et facilitent la détection d’incohérences.
+
+\vspace{2em}
+
+\subsection{Interprétation des indicateurs et qualité du suivi}
+
+Les indicateurs et graphiques permettent d’évaluer la qualité du suivi GPS et l’effort physique associé. Du point de vue technique, ils vérifient si la distance calculée est cohérente avec le terrain, si les vitesses sont réalistes, et si les pauses ont été correctement détectées. En cas d’erreurs (par exemple pause non détectée, vitesse excessive, altitude aberrante), cela peut signaler un défaut dans la captation des données.
+
+\vspace{1em}
+
+Du côté utilisateur, ces données permettent de quantifier précisément l’effort fourni. La distance, la durée et la vitesse moyenne donnent une idée du niveau d’intensité. La vitesse maximale reflète les pics d’effort, tandis que l’altitude et le dénivelé permettent d’évaluer la difficulté. L’estimation des calories brûlées ajoute une dimension énergétique utile pour le suivi d’activité physique.
+
+\vspace{2em}
+
+\subsection*{Conclusion}
+
+Les indicateurs calculés et les visualisations graphiques permettent d’évaluer à la fois la fiabilité du système de suivi GPS et l’intensité de l’effort physique fourni. Grâce à un traitement automatisé, reproductible et sans biais, le script offre des résultats fiables et facilement exploitables, aussi bien pour analyser les performances que pour améliorer le système.
+

@@ -1,1 +1,26 @@
-a completer
+\subsection{Description du produit : fonctionnalités et mode d’utilisation}
+
+Le système d’acquisition que nous avons conçu permet d’enregistrer un parcours pédestre de manière autonome, à l’aide d’une Raspberry Pi 4 équipée de plusieurs capteurs : un module GPS, un IMU (accéléromètre, gyroscope, magnétomètre), un LiDAR 2D, ainsi que des composants d’interface utilisateur (bouton poussoir, LED, buzzer, écran LCD). Le tout est alimenté par une batterie externe via USB-C et embarqué dans un boîtier portable.
+
+\paragraph{Fonctionnalités principales}~
+
+\begin{itemize}
+    \item \textbf{Démarrage et arrêt manuel du suivi}: l’utilisateur peut démarrer ou arrêter l’enregistrement du trajet en appuyant sur un bouton poussoir. Chaque action est confirmée visuellement (LED) et auditivement (buzzer).
+    
+    \item \textbf{Acquisition en temps réel}: la Raspberry Pi enregistre en continu les données des capteurs (position GPS, orientation, altitude, etc.) sur une carte SD. Ces données sont ensuite utilisées pour la reconstruction de la trajectoire.
+    
+    \item \textbf{Affichage embarqué}: un écran LCD affiche des informations en temps réel telles que l’état du système ou le temps écoulé.
+    
+    \item \textbf{Traitement automatisé des données}: après l’enregistrement, un script Python permet de nettoyer les données, calculer les indicateurs clés (distance, durée, vitesses, altitude, calories), générer des graphiques et tracer le parcours sur une carte.
+    
+    \item \textbf{Visualisation finale du parcours}: le trajet est visualisable sur OpenStreetMap avec les indicateurs calculés, ce qui permet une analyse claire et synthétique de la session.
+\end{itemize}
+
+\paragraph{Mode d’utilisation}~
+
+Avant de commencer, l’utilisateur s’assure que le système est bien alimenté et que les capteurs ont été initialisés. Une première pression sur le bouton poussoir déclenche l’enregistrement. La LED s’allume et un signal sonore confirme le début du suivi. Pendant la marche, les capteurs collectent les données en continu, sans intervention nécessaire.
+
+À la fin du parcours, l’utilisateur appuie à nouveau sur le bouton pour stopper l’acquisition. Les données sont alors prêtes à être transférées sur un ordinateur, où un script d’analyse (fourni) peut être lancé pour exploiter les mesures de manière automatisée et produire les résultats finaux (CSV, graphiques, visualisation cartographique, etc.).
+
+Ce système offre une solution complète de suivi d’activité, sans dépendre d’une connexion Internet ou d’un smartphone, tout en assurant une précision renforcée grâce à la combinaison des capteurs et au traitement rigoureux des données.
+
