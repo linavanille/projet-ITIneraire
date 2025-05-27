@@ -3,9 +3,11 @@
 
 import numpy as np
 import math  as m
+import datetime
 import pandas as pd
 import logging
 
+from filtre_date import conversion
 from utils2 import CSVHandler
 
 LOG = logging.getLogger()
@@ -152,17 +154,35 @@ class DimensionsNonConformesException (KalmanException):
 class ParametreNonDefiniException (KalmanException):
     pass
 
-def filtrage_csv(source:str, csv_out:str, filtre:FiltreKalman)->None:
-    """Filtre les données d'un csv et les écrits dans un nouveau csv"""
+def initialisation_des_csv(source_gnss:str,
+                            csv_out:str,
+                            source_imu:str=None)->(pd.DataFrame, pd.DataFrame, CSVHandler):
+    """
+    Preparation des fichiers csv d'entrée et de sortie
+    - rajoute extensions si besoin
+    - renvoie:
+        Les data Frame des fichiers source et le CSVHandler de la destination
+    """
 
-    if not(source.endswith('.csv')):
-        source +='.csv'
-    df = pd.read_csv(source)
+    if not(source_gnss.endswith('.csv')):
+        source_gnss +='.csv'
+    df_gnss = pd.read_csv(source_gnss)
+
+    if source_imu and not(source_imu.endswith('.csv')):
+        source_imu +='.csv'
+    df_imu = pd.read_csv(source_imu)
 
     if not(csv_out.endswith('.csv')):
         csv_out +='.csv'
     record = CSVHandler(csv_out)
     record.create_csv_with_header(['UTC','Latitude','Longitude', 'Altitude'])
+
+    return df_gnss, df_imu, record
+
+def filtrage_csv(source:str, csv_out:str, filtre:FiltreKalman)->None:
+    """Filtre les données d'un csv et les écrits dans un nouveau csv"""
+
+    df, _, record = initialisation_des_csv(source, csv_out)
 
     filtre.x = np.array([df['Latitude'][0],
                       df['Longitude'][0],
@@ -197,27 +217,70 @@ def filtrage_cartesien(source:str, csv_out:str, filtre:FiltreKalman)->None:
                          m.degrees(np.atan2(y, x)),
                          np.abs(alt)/10000])
 
-    if not(source.endswith('.csv')):
-        source +='.csv'
-    df = pd.read_csv(source)
+    df, _, record = initialisation_des_csv(source, csv_out)
 
-    if not(csv_out.endswith('.csv')):
-        csv_out +='.csv'
-    record = CSVHandler(csv_out)
-    record.create_csv_with_header(['UTC','Latitude','Longitude', 'Altitude'])
-
+    # initialisation du premier x du filtre
     filtre.x = np.block([to_cartesien(df['Latitude'][0],
                                       df['Longitude'][0],
                                       df['Altitude'][0]),
-                         0, 0, 0 ])
+                                        0, 0, 0 ])
 
     for i in range (df.shape[0]):
         y = to_cartesien(df['Latitude'][i],
                          df['Longitude'][i],
                          df['Altitude'][i])
+
         filtre(np.zeros(3), y)
         X = to_spherique(*filtre.x[:3])
         record.append_row([df['UTC'][i] ,X[0], X[1], X[2]])
+
+def filtrage_correction( source_imu:str, source_gnss:str, csv_out:str, filtre:FiltreKalman)->None:
+    """Filtre les données d'un csv et les écrits dans un nouveau csv"""
+
+    def dt(i:int)->float:
+        """calcule le temps entre 2 acquisitions"""
+        if i>0:
+            s_1 = df_imu['Timestamp'][i].second
+            ms_1 = df_imu['Timestamp'][i].microsecond*1e-6
+            s_0 = df_imu['Timestamp'][i-1].second
+            ms_0 = df_imu['Timestamp'][i-1].microsecond*1e-6
+        return s_1 + ms_1 - s_0 + m_0
+
+
+    df_gnss, df_imu, record = initialisation_des_csv(source_gnss, source_imu, csv_out)
+
+    conversion(df_gnss)
+
+    #initialisation du premier x du filtre
+    filtre.x = np.array([df_gnss['Latitude'][0],
+                      df_gnss['Longitude'][0],
+                      df_gnss['Altitude'][0],
+                      0, 0, 0 ])
+
+    j = 1
+    while i<df_imu.shape[0] and i<df_gnss.shape[0]:
+
+        while (df_imu['TimeStamp'][i] < df_gnss['Date_Formatee'][j]):
+            filtre.F = F(dt(i))
+            filtre.G = G(dt(i))
+            filtre(u)
+            i = i+1
+            u = np.array([df_imu['Accel X'][i],
+                        df_imu['Accel Y'][i],
+                        df_imu['Accel Z'][i],
+                        ])
+
+        filtre.F = F(dt(i))
+        filtre.G = G(dt(i))
+        y = np.array([df_gnss['Latitude'][j],
+                        df_gnss['Longitude'][j],
+                        df_gnss['Altitude'][j]
+                        ])
+        filtre(u, y)
+        j += 1
+        i = i+1
+
+        record.append_row([df_imu['TimeStamp'][i] ,filtre.x[0], filtre.x[1], filtre.x[2]])
 
 if __name__ == "__main__":
     F = np.eye(6)

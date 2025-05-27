@@ -26,9 +26,6 @@ def G(dt:float, n:int=3):
                 ])
     return g
 
-def get_acquisitions_imu()->str:
-    return root_source+"DoubleAcquisition/acquisitionIMU"
-
 def get_acquisitions(type:str):
     """selection du dictionnaire d'acquisition"""
 
@@ -38,7 +35,8 @@ def get_acquisitions(type:str):
         root_destination = "./output/CSV_Filtre/"
     elif type == "filtre_prediction":
         root_destination = "./output/TestFiltrePrediction/"
-        return {root_source+"DoubleAcquisition/acquisitionGPS": root_destination+'magellan'},
+        return root_source+"DoubleAcquisition/acquisitionIMU", \
+               {root_source+"DoubleAcquisition/acquisitionGPS": root_destination+'magellan'}
     elif type == "raw":
         root_destination = ""
 
@@ -111,8 +109,13 @@ def generation_fichiers(type_data_input:str,
                 plot_GNSS(k+".csv", out_path)
             print("\n")
     # TODO faire le cas avec un fichier de prediction
-    # else:
-    #     filtrage()
+    else:
+        for k, v in acquisitions_gps.items():
+            print(f'Filtrage de {BLUE}{k}{RESET} dans {GREEN}{v}{RESET}')
+            filtrage(acquisition_imu, k, v, filtre)
+
+            print(f'Génération du fichier html de {GREEN}{v}{RESET}')
+            plot_GNSS(v+".csv", out_path)
 
 class ParametreIncorrectErreur (Exception):
     """Erreur de saisie de parametre formel"""
@@ -138,3 +141,4 @@ if __name__ == "__main__":
     else:
         generation_fichiers("raw", filtrage=f)
         generation_fichiers("filtre", filtrage=f)
+        generation_fichiers("filtre_prediction", filtrage=f)
