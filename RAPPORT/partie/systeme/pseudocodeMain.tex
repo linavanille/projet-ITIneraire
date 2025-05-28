@@ -1,11 +1,3 @@
-La synchronisation des se fait grâce au multiprocessing.
-
-En effet, nous lançons 3 processus qui tournent en parallèle.
-Les 2 premiers sont chargés d'acquérir les données de l'IMU et du récepteur GNSS (respectivement).
-Le troisième récupère ses données afin de leur appliquer un filtrage de Kalman paramètré préalablement.
-
-Ceci a pu se faire grâce au module \textit{multiprocessing} de Python, en suivant le pseudocode suivant:\\
-
 Processus qui écrit les données de l'IMU dans une file FIFO
 avec une fréquence de $10Hz$.
 \begin{algorithmic}[1]
@@ -64,3 +56,4 @@ et on effectue une correction à chaque nouvelle donnée GNSS.\@
         \EndWhile\@
     \EndFunction\@
 \end{algorithmic}
+
