@@ -3,13 +3,14 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+from valeurs_aberrantes import nettoyer_csv_gps
 
 class Performances:
 
 	def __init__(self, chemin):
+		nettoyer_csv_gps(chemin)
 		raw_data = np.loadtxt(chemin, delimiter=",", dtype=str, skiprows=1)
 
-		# Ne garder que les lignes valides (timestamp contient " - ")
 		valid_rows = [row for row in raw_data if " - " in row[0]]
 		data = np.array(valid_rows)
 
