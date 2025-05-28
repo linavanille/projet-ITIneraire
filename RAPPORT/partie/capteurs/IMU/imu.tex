@@ -1,8 +1,8 @@
-\section{MinIMU-9 v6}
+\subsection{MinIMU-9 v6}
 
 \vspace{2em}
 
-\subsection{Description et fonctionnement}
+\subsubsection{Description et fonctionnement}
 
 Le MinIMU-9 v6 est un module inertiel qui intègre trois capteurs: un accéléromètre, un gyroscope (tous deux présents dans le composant LSM6DSO) et un magnétomètre (LIS3MDL). Ces capteurs permettent respectivement de mesurer l’accélération, la vitesse de rotation et le champ magnétique sur trois axes. En combinant ces données, il est possible d’estimer l’orientation du module dans l’espace et de reconstituer les mouvements effectués.
 
@@ -16,7 +16,7 @@ Lorsqu’il est en fonctionnement, l’IMU enregistre en continu les mouvements 
 
 \vspace{2em}
 
-\subsection{Avantages et inconvénients}
+\subsubsection{Avantages et inconvénients}
 
 Le MinIMU-9 v6 présente plusieurs avantages pour le suivi de mouvement. Sa petite taille et son poids léger en font un capteur facile à porter lors des acquisitions. Il peut fonctionner sur batterie, ce qui le rend autonome et pratique dans des conditions variées. Il fournit également des données à haute fréquence, ce qui permet de capturer en temps réel des mouvements rapides ou des changements de direction subtils.
 
@@ -34,7 +34,7 @@ De plus, les capteurs MEMS utilisés dans ce type d’IMU sont sensibles au brui
 
 \vspace{2em}
 
-\subsection{Sources de bruitage et défauts techniques}
+\subsubsection{Sources de bruitage et défauts techniques}
 
 Ce capteur peut être affecté par différents types de bruits et défauts liés à ses capteurs MEMS. Chaque capteur (accéléromètre, gyroscope, etc.) génère un bruit électronique naturel, souvent assimilé à du bruit blanc. Cela crée de petites variations aléatoires dans les mesures, rendant l’estimation de la position moins fiable.
 
@@ -56,7 +56,7 @@ Pour limiter l’impact de ces défauts, il est indispensable d’appliquer des 
 
 \vspace{2em}
 
-\subsection{Calibration effectuée}
+\subsubsection{Calibration effectuée}
 
 Pour obtenir des mesures fiables, nous avons réalisé une calibration expérimentale en comparant les données de notre IMU avec celles d’un smartphone sur une même séquence de mouvements. L’objectif était d’identifier et corriger les erreurs systématiques (biais, échelle) présentes dans les mesures de l’IMU.
 
@@ -70,7 +70,7 @@ Le smartphone enregistrait ses données via une application dédiée (GPS Logger
 
 \vspace{2em}
 
-\subsection{Choix des paramètres d’acquisition}
+\subsubsection{Choix des paramètres d’acquisition}
 
 Les paramètres d’acquisition, comme la fréquence d’échantillonnage ou la plage de mesure, jouent un rôle important dans la qualité du suivi de trajectoire. Pour notre projet, nous avons choisi une fréquence de 10~Hz, ce qui correspond à 10 mesures par seconde. Ce rythme est suffisant pour suivre la marche d’un utilisateur, dont la cadence est généralement d’un pas toutes les 0{,}5 secondes.
 
@@ -84,7 +84,7 @@ Même si le GPS utilisé fonctionne à 1~Hz, nous avons conservé l’IMU à 10~
 
 \vspace{2em}
 
-\subsection{Filtrage des signaux bruts}
+\subsubsection{Filtrage des signaux bruts}
 
 Pour exploiter les données de l’IMU et reconstituer une trajectoire fiable, un filtrage des signaux bruts est indispensable. Actuellement, nous utilisons une méthode simple basée sur un modèle physique : à chaque instant, la position, la vitesse et l’orientation sont mises à jour en supposant un mouvement uniformément accéléré. Cela permet d’obtenir une première estimation, mais sans correction externe.
 

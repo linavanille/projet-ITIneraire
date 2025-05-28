@@ -1,6 +1,7 @@
 \documentclass[a4paper]{article}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
+\usepackage{textcomp}
 
 \usepackage{geometry}
   \geometry{hmargin = 3cm, vmargin = 1.5cm} 
@@ -31,19 +32,24 @@
 \newpage	 
 
 \section{Présentation des Capteurs à disposition}
-	\input{partie/capteurs/presentation}
-	\subsection{Description et fonctionnement}
-		\input{partie/capteurs/description}
-	\subsection{Avantages et inconvénients}
-		\input{partie/capteurs/av-inc}
-	\subsection{Sources de bruitage et/ou défauts techniques}
-		\input{partie/capteurs/bruit}
-	\subsection{Calibration effectuée}
-		\input{partie/capteurs/calibration}
-	\subsection{Choix des paramètres d'acquisition}
-		\input{partie/capteurs/acquisition}
-	\subsection{Filtrage des signaux bruts}
-		\input{partie/capteurs/filtrage}
+	\input{partie/capteurs/GPS/GPS.tex}
+	\newpage
+	\input{partie/capteurs/IMU/imu.tex}
+	\newpage
+	\input{partie/capteurs/LIDAR/lidar.tex}
+	% \input{partie/capteurs/presentation}
+	% \subsection{Description et fonctionnement}
+	% 	\input{partie/capteurs/description}
+	% \subsection{Avantages et inconvénients}
+	% 	\input{partie/capteurs/av-inc}
+	% \subsection{Sources de bruitage et/ou défauts techniques}
+	% 	\input{partie/capteurs/bruit}
+	% \subsection{Calibration effectuée}
+	% 	\input{partie/capteurs/calibration}
+	% \subsection{Choix des paramètres d'acquisition}
+	% 	\input{partie/capteurs/acquisition}
+	% \subsection{Filtrage des signaux bruts}
+	% 	\input{partie/capteurs/filtrage}
 		
 \newpage
 

@@ -1,14 +1,14 @@
-\section{RPLIDAR A1M8}
+\subsection{RPLIDAR A1M8}
 
 \vspace{2em}
 
-\subsection{Description et fonctionnement}
+\subsubsection{Description et fonctionnement}
 
-Le RPLIDAR A1M8 est un capteur LiDAR 2D capable de scanner à 360\degre{} dans un plan horizontal. Il utilise un laser infrarouge de classe 1 (sans danger pour l’œil) et fonctionne par triangulation optique : il envoie un faisceau laser et calcule la distance à l’obstacle en analysant l’angle de retour.
+Le RPLIDAR A1M8 est un capteur LiDAR 2D capable de scanner à 360$^\circ$ dans un plan horizontal. Il utilise un laser infrarouge de classe 1 (sans danger pour l’œil) et fonctionne par triangulation optique : il envoie un faisceau laser et calcule la distance à l’obstacle en analysant l’angle de retour.
 
 \vspace{1em}
 
-Il fournit environ 1450 mesures par tour, avec une résolution proche de 1\degre{} et une fréquence de scan autour de 5{,}5~Hz. On peut aussi augmenter la vitesse de rotation (jusqu’à 10~Hz) en réduisant le nombre de points. Sa portée utile est d’environ 6~mètres, avec un maximum pouvant atteindre 12~mètres selon les versions.
+Il fournit environ 1450 mesures par tour, avec une résolution proche de 1$^\circ$ et une fréquence de scan autour de 5{,}5~Hz. On peut aussi augmenter la vitesse de rotation (jusqu’à 10~Hz) en réduisant le nombre de points. Sa portée utile est d’environ 6~mètres, avec un maximum pouvant atteindre 12~mètres selon les versions.
 
 \vspace{1em}
 
@@ -20,9 +20,9 @@ Le capteur fonctionne aussi dans le noir, car il génère sa propre lumière, ma
 
 \vspace{2em}
 
-\subsection{Avantages et inconvénients}
+\subsubsection{Avantages et inconvénients}
 
-Le RPLIDAR A1M8 présente plusieurs atouts intéressants pour la détection de l’environnement. Il permet un balayage complet à 360\degre{}, ce qui évite les angles morts et offre une bonne perception de l’espace autour de l’utilisateur. Il produit un nuage de points dense et précis, avec une résolution fine et une portée correcte pour un capteur abordable. Grâce à son taux d’échantillonnage élevé (jusqu’à 8000 mesures par seconde), il peut suivre les changements de l’environnement en temps réel. Contrairement à une caméra, il fournit directement des distances fiables, indépendamment de la lumière ambiante, ce qui le rend utilisable dans l’obscurité.
+Le RPLIDAR A1M8 présente plusieurs atouts intéressants pour la détection de l’environnement. Il permet un balayage complet à 360$^\circ$, ce qui évite les angles morts et offre une bonne perception de l’espace autour de l’utilisateur. Il produit un nuage de points dense et précis, avec une résolution fine et une portée correcte pour un capteur abordable. Grâce à son taux d’échantillonnage élevé (jusqu’à 8000 mesures par seconde), il peut suivre les changements de l’environnement en temps réel. Contrairement à une caméra, il fournit directement des distances fiables, indépendamment de la lumière ambiante, ce qui le rend utilisable dans l’obscurité.
 
 \vspace{1em}
 
@@ -30,7 +30,7 @@ Dans notre projet, il permet de détecter les obstacles proches et d’améliore
 
 \vspace{1em}
 
-Cependant, ce capteur a aussi ses limites. Il est 2D: il ne capte que ce qui se trouve dans son plan de balayage horizontal, ce qui peut lui faire rater des objets trop bas ou trop hauts. Sa portée est limitée à environ 6~mètres, ce qui restreint son usage à des environnements proches. Sa résolution angulaire (environ 1\degre{}) peut laisser passer de petits objets à distance, et il est sensible à la nature des surfaces : les objets sombres, brillants ou transparents peuvent ne pas être bien détectés.
+Cependant, ce capteur a aussi ses limites. Il est 2D: il ne capte que ce qui se trouve dans son plan de balayage horizontal, ce qui peut lui faire rater des objets trop bas ou trop hauts. Sa portée est limitée à environ 6~mètres, ce qui restreint son usage à des environnements proches. Sa résolution angulaire (environ 1$^\circ$) peut laisser passer de petits objets à distance, et il est sensible à la nature des surfaces : les objets sombres, brillants ou transparents peuvent ne pas être bien détectés.
 
 \vspace{1em}
 
@@ -42,7 +42,7 @@ Malgré tout, son bon rapport qualité/prix et sa compatibilité avec la Raspber
 
 \vspace{2em}
 
-\subsection{Sources de bruitage et défauts techniques}
+\subsubsection{Sources de bruitage et défauts techniques}
 
 Le RPLIDAR A1M8 peut être perturbé par plusieurs facteurs. D’abord, il y a un léger bruit aléatoire sur les distances mesurées, même sur une cible fixe. Plus la distance augmente, plus l’écart entre les mesures peut devenir important. Ensuite, les objets sombres ou peu réfléchissants sont souvent mal détectés : par exemple, un tissu noir peut parfois ne pas apparaître du tout dans le scan, contrairement à une surface claire au même endroit.
 

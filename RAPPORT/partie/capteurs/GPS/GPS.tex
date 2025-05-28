@@ -1,8 +1,8 @@
-\section{Module GPS DFRobot TEL0157}
+\subsection{Module GPS DFRobot TEL0157}
 
 \vspace{2em}
 
-\subsection{Description et fonctionnement}
+\subsubsection{Description et fonctionnement}
 
 Le DFRobot TEL0157 est un module de réception GNSS multi-constellation compact, compatible UART et I2C.  
 Il intègre une puce Quectel L76K capable d'exploiter plusieurs systèmes de navigation par satellites simultanément (GPS, GLONASS, BeiDou, etc.), ce qui lui permet de fournir rapidement la position (longitude, latitude, altitude) et l’heure UTC avec une meilleure précision qu'un GPS mono-constellation.  
@@ -14,7 +14,7 @@ En résumé, ce module fournit une solution plug-and-play pour obtenir en temps 
 
 \vspace{2em}
 
-\subsection{Avantages et inconvénients}
+\subsubsection{Avantages et inconvénients}
 
 \textbf{Avantages :}  
 Le module GPS TEL0157 présente plusieurs atouts pour une application de suivi. Sa compatibilité multi-constellation améliore la disponibilité des satellites et la précision de la localisation. En combinant GPS, GLONASS, BeiDou et éventuellement Galileo ou QZSS, il augmente le nombre de satellites utilisables et améliore la rapidité du fix, même en milieu urbain ou sous les arbres.  
@@ -30,7 +30,7 @@ Enfin, ce module n’intègre pas de corrections différentielles (WAAS/EGNOS, R
 
 \vspace{2em}
 
-\subsection{Sources de bruitage et défauts techniques}
+\subsubsection{Sources de bruitage et défauts techniques}
 
 Les signaux GNSS sont perturbés par la traversée de l’ionosphère et de la troposphère, générant des retards et des imprécisions, notamment sur la fréquence L1. Les erreurs d’orbite, d’horloge des satellites et le bruit interne du module contribuent également au bruit global.  
 Le phénomène de multipath, dû aux réflexions des signaux sur les bâtiments ou le sol, provoque des écarts de position et des trajectoires erratiques en milieu urbain.  
@@ -39,21 +39,21 @@ Enfin, bien que rare dans notre contexte, des perturbations intentionnelles comm
 
 \vspace{2em}
 
-\subsection{Calibration effectuée}
+\subsubsection{Calibration effectuée}
 
 Nous avons réalisé une série d’expérimentations sur le terrain pour évaluer la précision et la stabilité du module. Des parcours identiques ont été répétés à différentes fréquences d’échantillonnage (1 Hz, 5 Hz, 10 Hz), en comparant les trajectoires à une distance de référence. Les écarts mesurés étaient faibles et la variance entre les fréquences négligeable, sans amélioration notable de la précision ou de la réactivité.  
 Nous avons donc retenu la fréquence par défaut de 1 Hz, suffisante pour notre application et limitant la charge de traitement et le volume de données.
 
 \vspace{2em}
 
-\subsection{Choix des paramètres d’acquisition}
+\subsubsection{Choix des paramètres d’acquisition}
 
 Les paramètres d’acquisition ont été définis en fonction des caractéristiques du module et des besoins du projet. La fréquence de 1 Hz a été conservée car elle offre un bon compromis entre précision et volume de données, tout en assurant une compatibilité optimale avec l’interface UART à 9600 bauds.  
 Toutes les constellations disponibles (GPS, GLONASS, BeiDou, Galileo) ont été activées pour maximiser le nombre de satellites visibles et améliorer la précision et la stabilité du fix, notamment en milieu urbain.
 
 \vspace{2em}
 
-\subsection{Filtrage des signaux bruts}
+\subsubsection{Filtrage des signaux bruts}
 
 Pour compenser les fluctuations et améliorer la qualité des trajectoires, un filtre de Kalman a été appliqué aux données GPS. Ce filtre combine les positions mesurées et leur incertitude pour estimer plus précisément la position réelle. Il permet de lisser le tracé, de corriger les sauts ou les erreurs ponctuelles, et d’assurer une trajectoire plus stable et exploitable.  
 Ce traitement garantit une meilleure fiabilité des données GPS, en particulier lorsqu’elles sont fusionnées avec d’autres capteurs (IMU), et s’avère essentiel pour obtenir une trajectoire crédible dans des conditions variées.
