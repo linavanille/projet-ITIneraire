@@ -1,4 +1,4 @@
-#!/usr/bin/env python 3 
+#!/usr/bin/env python 3
 """ Module de récupération des mesures"""
 
 import numpy as np
@@ -31,7 +31,7 @@ class Mesures ():
     def gnss(self)->np.array:
         """Renvoie la position en DMM et l'altitude"""
         self._data_gnss.update()
-        
+
         latitude = self._data_gnss.latitude.coords_DD
         longitude = self._data_gnss.longitude.coords_DD
         altitude = self._data_gnss.altitude
@@ -39,7 +39,7 @@ class Mesures ():
         return np.array([longitude, latitude, altitude])
 
     def get_utc(self):
-        return self._data_gnss.utc
+        return self.to_cartesien(*self._data_gnss.utc)
 
     @property
     def imu(self)->np.array:
@@ -63,19 +63,22 @@ class Mesures ():
                        [0,              0,         1]
                       ])
         return Rx@Ry@Rz@np.array([x, y, z])
-    
-    def _to_cartesien(theta:float, phi:float, R:int=6731)->np.array:
-        """Conversion du repère shérique au cartésien"""
-        theta, phi = np.pi/180*theta, np.pi/180*phi
-        return np.array([R*np.cos(theta)*np.sin(phi),
-                         R*np.cos(theta)*np.sin(theta),
-                         R*np.cos(theta)])
 
-    def _to_spherique(x:float, y:float, z:float)->np.array:
+    def to_cartesien(theta:float, phi:float, alt:float, R:int=6356752)->np.array:
+        """Conversion du repère shérique au cartésien"""
+
+        theta, phi = m.radians(theta), m.radians(phi)
+        return np.array([(R + alt) * np.sin(theta) * np.cos(phi),
+                        (R + alt) * np.sin(theta) * np.sin(phi),
+                        (R + alt) * np.cos(theta) ])
+
+    def to_spherique(x:float, y:float, z:float)->np.array:
         """Conversion du repère cartésien au sphérique"""
-        theta, phi = np.pi/180*theta, np.pi/180*phi
-        R = np.sqrt(x**2+y**2+z**2)
-        return np.array([np.acos(z/R), np.atan(y/x), R])
+        R = 6356752
+        alt = np.sqrt(x**2 + y**2 + z**2) - R
+        return np.array([m.degrees(m.acos(z/R)),
+                        m.degrees(m.atan(y/x)),
+                        alt])
 
 if __name__ == "__main__":
     # main = Mesures()

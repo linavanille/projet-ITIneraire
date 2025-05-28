@@ -7,13 +7,14 @@ def traitement_date_gps(chaine,sep):
 
 		jour, horaire = chaine.split(sep["sep_central"])
 		h = [int(elt) for elt in jour.split(sep["sep_jour"]) + horaire.split(sep["sep_heure"])]
-		return datetime(h[0],h[1],h[2],h[3],h[4],h[5],tzinfo=timezone.utc)
+		return datetime(h[0],h[1],h[2],h[3]+2,h[4],h[5],tzinfo=timezone.utc)
 
 def remplacement_date_formatee_gps(data):
     if not isinstance(data, pd.core.frame.DataFrame) :
         raise TypeError("n'accepte que des DataFrame")
 
     c = data.columns
+    print(c)
     nom_col_date = 'UTC'
     sep = {"sep_jour":"/","sep_central":"-","sep_heure":":"}
 

@@ -110,11 +110,12 @@ def acquisition(filtre:FiltreKalman, csv_out:str)->pd.DataFrame:
                 y_old = y_new
                 j = 0
 
-            output.append_row([rpi.get_utc(), filtre.x[0], filtre.x[1], filtre.x[2]])
+            X = Mesures.to_spherique(*filtre.x)
+            output.append_row([rpi.get_utc(), X[0], X[1], X[2]])
             result.loc[len(result)] = ({'TimeStamp': rpi.getutc(),
-                                        'Latitude' : filtre.x[1],
-                                        'Longitude' : filtre.x[0],
-                                        'Altitude' : filtre.x[2],
+                                        'Latitude' : X[0],
+                                        'Longitude' : X[1],
+                                        'Altitude' : X[2],
                                         })
             time.sleep(0.1)
         except KeyboardInterrupt:
@@ -155,6 +156,11 @@ if __name__ == "__main__":
     #         app.credit
     #     elif self.help == "H" :
     #         app.help
+    csv_out = ""
+    html_out = ""
+    gpx_out = ""
     filtre = initialisation_Kalman(0.1)
-    df = acquisition(filtre)
+    df = acquisition(filtre, csv_out)
+    plot_gnss(csv_out, html_out)
+    # csv_to_gpx.main(csv_out, gpx_out)
     print(df.describe())

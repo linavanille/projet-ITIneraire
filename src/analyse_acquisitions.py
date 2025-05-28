@@ -6,7 +6,7 @@ import argparse
 from typing import Callable
 
 
-from filtres import FiltreKalman, filtrage_csv, filtrage_cartesien
+from filtres import FiltreKalman, filtrage_csv, filtrage_cartesien, filtrage_prediction
 from GPS.plot_gnss import *
 
 RESET = "\033[0m"
@@ -34,7 +34,7 @@ def get_acquisitions(type:str):
     if type == "filtre":
         root_destination = "./output/CSV_Filtre/"
     elif type == "filtre_prediction":
-        root_destination = "./output/TestFiltrePrediction/"
+        root_destination = "./output/CSV_FiltrePrediction/prediction_"
         return root_source+"DoubleAcquisition/acquisitionIMU", \
                {root_source+"DoubleAcquisition/acquisitionGPS": root_destination+'magellan'}
     elif type == "raw":
@@ -47,6 +47,7 @@ def get_acquisitions(type:str):
             root_source+'parasol/GPS_parasol_RPI': root_destination+'parasol_RPI',
             root_source+'parasol/GPS_parasol_Thomas': root_destination+'parasol_Tho',
             root_source+'parasol/GPS_parasol_Chloe': root_destination+'parasol_Chl',
+            root_source+'DoubleAcquisition/acquisitionGPS': root_destination+'magellan'
         }
 
 def generation_fichiers(type_data_input:str,
@@ -95,7 +96,7 @@ def generation_fichiers(type_data_input:str,
     filtre = FiltreKalman(F_t, H, G_t, Q, R)
 
     # generation des fichiers
-    if type_data_input != 'filtre_prediction':
+    if type_data_input != "filtre_prediction":
         for k, v in acquisitions_gps.items():
 
             if type_data_input == 'filtre':
@@ -123,7 +124,7 @@ class ParametreIncorrectErreur (Exception):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('output',
-                        choices=['raw', 'filtre', 'all'],
+                        choices=['raw', 'filtre', 'filtre_p', 'all'],
                         help='output : raw pour generer seulement les html des données brutes. \
                                        filtre pour filtrer les données et generer les html. \
                                         all pour faire les deux')
@@ -134,11 +135,13 @@ if __name__ == "__main__":
 
     f = filtrage_csv if args.spherique else filtrage_cartesien
 
-    if args.output == '--filtre':
+    if args.output == 'filtre':
         generation_fichiers("filtre", filtrage=f)
-    elif args.output == '--raw':
+    elif args.output == 'raw':
         generation_fichiers("raw", filtrage=f)
+    elif args.output == 'filtre_p':
+        generation_fichiers("filtre_prediction", filtrage=filtrage_prediction)
     else:
         generation_fichiers("raw", filtrage=f)
         generation_fichiers("filtre", filtrage=f)
-        generation_fichiers("filtre_prediction", filtrage=f)
+        generation_fichiers("filtre_prediction", filtrage=filtrage_prediction)

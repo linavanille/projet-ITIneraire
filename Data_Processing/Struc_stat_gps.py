@@ -18,7 +18,7 @@ class Donnees():
 	def __import_GPS_Data(paff):
 		for src in Donnees.sources_gps[1:] :
 			Donnees.__gpx_to_csv(Donnees.root+paff+"/GPS_"+paff+"_"+src)
-		
+
 		return {src:pd.read_csv((Donnees.root+paff+"/GPS_"+paff+"_"+src+".csv")) for src in Donnees.sources_gps}
 
 	def __import_IMU_Data(paff):
@@ -29,15 +29,15 @@ class Donnees():
 	def __reformatage_date_source_gps(self):
 		for elt in self :
 			Donnees.__remplacement_date_formatee_gps(self[elt],1 if elt == 'RPI' else 0)
-			
+
 	def __traitement_date_gps(chaine,sep):
 		if not isinstance(chaine, str):
 			raise TypeError("la chaine à traiter doit être une Chaine de Caractères")
-		
+
 		jour, horaire = chaine.split(sep["sep_central"])
 		h = [int(elt) for elt in jour.split(sep["sep_jour"]) + horaire.split(sep["sep_heure"])]
 		return datetime(h[0],h[1],h[2],h[3],h[4],h[5],tzinfo=Donnees.timezone)
-	
+
 	def __remplacement_date_formatee_gps(data, rpi=False):
 		if not isinstance(data, pd.core.frame.DataFrame) :
 			raise TypeError("n'accepte que des DataFrame")
@@ -54,16 +54,16 @@ class Donnees():
 			if data[nom_col_date][0][4] != "-" :
 				raise FormatDataCSVInconnuException("Mauvaise séparateur de date dans le csv")
 		sep = {"sep_jour":"-","sep_central":"T","sep_heure":":"} if rpi else {"sep_jour":"/","sep_central":"-","sep_heure":":"}
-		
+
 		data.insert(loc=1, column="Date_Formatee", value=[Donnees.__traitement_date_gps(elt,sep) for elt in data[nom_col_date]])
 		del data[nom_col_date]
 
 	def __reformatage_date_source_imu(self):
 		for elt in self :
 			Donnees.__remplacement_date_formatee_imu(self[elt], 1 if elt == 'RPI' else 0)
-	
+
 	#initialiseur
-	
+
 	def __init__(self, chemin, mode="gps"):
 		self.mode = mode
 		if self.mode == "imu" :
@@ -85,17 +85,17 @@ class Donnees():
 			if not os.path.exists(Donnees.root+chemin):
 				raise AcquisitionInexistanteException(f"le dossier d'acquisition {chemin} n'existe pas. \n Possiblités {os.listdir(Donnees.root)}")
 			dossier = os.listdir(Donnees.root+chemin)
-		
+
 			acces = "GPS_" + chemin + "_"
 			for elt in Donnees.sources_gps:
 				if acces + elt + ".gpx" not in dossier :
 					if acces + elt + ".csv" not in dossier :
 						raise AcquisitionInexistanteException(f"Aucun fichier d'acquisition pour la source {elt}")
-				
+
 			self._donnees = Donnees.__import_GPS_Data(chemin)
-			
+
 			self.__reformatage_date_source_gps()
-			
+
 			indice_moins_colonne = Donnees.sources_gps[0]
 			min_nb_colonne = len(self[indice_moins_colonne].columns)
 			for src in Donnees.sources_gps[1:] :
@@ -110,10 +110,10 @@ class Donnees():
 					print(f"/!\ Warning : Des colonnes sont manquantes pour la source {elt}, attendues : 4, actuelles : {len(self[elt].columns)} => {list(self[elt].columns)}")
 		else :
 			raise ModeInvalideException("Le mode n'est pas renseigné ou non reconnu")
-				
+
 
 	#méthode built-in
-	
+
 	def __getitem__(self,cle):
 		'''renvoi un acces direct aux données, pas de copies'''
 		if isinstance(cle, str) :
@@ -166,7 +166,7 @@ class Donnees():
 		for src in Donnees.sources_gps :
 			for c in self.champs :
 				res.insert(loc=1, column=src+"_"+c, value=stock[src+"_"+c])
-		return res 
+		return res
 
 	@property
 	def match_date_sans_NaN(self):
@@ -177,17 +177,17 @@ class Donnees():
 			raise TypeError(f"data doit être de type DataFrame, actuellement {type(data)}")
 		if champ not in data.columns :
 			raise KeyError(f"le champ n'existe pas dans le DataFrame, champs disponibles {data.columns}")
-		
+
 		for i in range(len(data)):
 			yield data[champ][i], i
 
 	def sans_NaN(data):
 		a_drop = data.index[data.isnull().any(axis=1)]
 		return data.drop(a_drop,axis=0)
-	
+
 	def nb_NaN(df):return df.isnull().values.sum()
 
-	
+
 class DonneesException(Exception):
 	pass
 

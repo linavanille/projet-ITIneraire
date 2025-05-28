@@ -7,8 +7,8 @@ import datetime
 import pandas as pd
 import logging
 
-from filtre_date import conversion
-from utils2 import CSVHandler
+from .filtre_date import conversion
+from .utils2 import CSVHandler, calcul_R, calcul_Q
 
 LOG = logging.getLogger()
 
@@ -73,7 +73,7 @@ class FiltreKalman ():
     def F(self, nouveau):
         if not isinstance(nouveau, np.ndarray):
             raise TypeError("F doit être un ndarray")
-        self.F = nouveau
+        self._F = nouveau
 
     @property
     def H(self):
@@ -93,7 +93,7 @@ class FiltreKalman ():
     def Q(self, nouveau):
         if not isinstance(nouveau, np.ndarray):
             raise TypeError("Q doit être un np.array")
-        self.Q = nouveau
+        self._Q = nouveau
 
     @property
     def R(self):
@@ -103,7 +103,7 @@ class FiltreKalman ():
     def R(self, nouveau):
         if not isinstance(nouveau, np.ndarray):
             raise TypeError("R doit être un np.array")
-        self.R = nouveau
+        self._R = nouveau
 
     @property
     def P(self):
@@ -156,7 +156,7 @@ class ParametreNonDefiniException (KalmanException):
 
 def initialisation_des_csv(source_gnss:str,
                             csv_out:str,
-                            source_imu:str=None)->(pd.DataFrame, pd.DataFrame, CSVHandler):
+                            source_imu:str="")->(pd.DataFrame, pd.DataFrame, CSVHandler):
     """
     Preparation des fichiers csv d'entrée et de sortie
     - rajoute extensions si besoin
@@ -168,9 +168,12 @@ def initialisation_des_csv(source_gnss:str,
         source_gnss +='.csv'
     df_gnss = pd.read_csv(source_gnss)
 
-    if source_imu and not(source_imu.endswith('.csv')):
+    if not(source_imu.endswith('.csv')):
         source_imu +='.csv'
-    df_imu = pd.read_csv(source_imu)
+    try:
+        df_imu = pd.read_csv(source_imu)
+    except FileNotFoundError:
+        df_imu = None
 
     if not(csv_out.endswith('.csv')):
         csv_out +='.csv'
@@ -197,25 +200,25 @@ def filtrage_csv(source:str, csv_out:str, filtre:FiltreKalman)->None:
         filtre(np.zeros(3), y)
         record.append_row([df['UTC'][i] ,filtre.x[0], filtre.x[1], filtre.x[2]])
 
+def to_cartesien(theta:float, phi:float, alt:float, R:int=6356752)->np.array:
+    """Conversion du repère shérique au cartésien"""
+
+    theta, phi = m.radians(theta), m.radians(phi)
+    return np.array([(R + alt) * np.sin(theta) * np.cos(phi),
+                        (R + alt) * np.sin(theta) * np.sin(phi),
+                        (R + alt) * np.cos(theta) ])
+
+def to_spherique(x:float, y:float, z:float)->np.array:
+    """Conversion du repère cartésien au sphérique"""
+    R = 6356752
+    alt = np.sqrt(x**2 + y**2 + z**2) - R
+    return np.array([m.degrees(m.acos(z/R)),
+                        m.degrees(m.atan(y/x)),
+                        alt])
+
 def filtrage_cartesien(source:str, csv_out:str, filtre:FiltreKalman)->None:
     """Filtre les données en coordonnées cartésiennes
     d'un csv et les écrits dans un nouveau csv en coordonnées sphériques"""
-
-    def to_cartesien(theta:float, phi:float, alt:float, R:int=6371000)->np.array:
-        """Conversion du repère shérique au cartésien"""
-
-        theta, phi = m.radians(theta), m.radians(phi)
-        return np.array([(R + alt) * np.cos(theta) * np.cos(phi),
-                         (R + alt) * np.cos(theta) * np.sin(phi),
-                         (R + alt) * np.cos(theta) ])
-
-    def to_spherique(x:float, y:float, z:float)->np.array:
-        """Conversion du repère cartésien au sphérique"""
-        R = 6371000
-        alt = np.sqrt(x**2 + y**2 + z**2) - R
-        return np.array([m.degrees(np.acos(z/R)),
-                         m.degrees(np.atan2(y, x)),
-                         np.abs(alt)/10000])
 
     df, _, record = initialisation_des_csv(source, csv_out)
 
@@ -232,55 +235,101 @@ def filtrage_cartesien(source:str, csv_out:str, filtre:FiltreKalman)->None:
 
         filtre(np.zeros(3), y)
         X = to_spherique(*filtre.x[:3])
-        record.append_row([df['UTC'][i] ,X[0], X[1], X[2]])
+        record.append_row([df['UTC'][i] ,X[0]+0.000547, X[1], X[2]])
 
-def filtrage_correction( source_imu:str, source_gnss:str, csv_out:str, filtre:FiltreKalman)->None:
+def filtrage_prediction(source_imu:str, source_gnss:str, csv_out:str, filtre:FiltreKalman)->None:
     """Filtre les données d'un csv et les écrits dans un nouveau csv"""
+
+    def F(dt:float, n:int=6):
+        """Definition dynamique de la matrice F"""
+        F_dt = np.eye(n)
+        F_dt [0:n//2, n//2:]  = dt*np.eye(n//2)
+        return F_dt
+
+    def G(dt:float, n:int=3):
+        """Definition dynamique de la matrice G"""
+        g = np.block([[1/2*dt**2*np.eye(n)],
+                        [dt*np.eye(n)]
+                        ])
+        return g
+
+    def _rotation(x, y, z, theta, phi, psi)->np.array:
+        """Applique une matrice de rotation sur les accélérations"""
+
+        theta, phi, psi = m.radians(theta), m.radians(phi), m.radians(psi)
+        Rx = np.array([[1,             0,              0],
+                       [0, np.cos(theta), -np.sin(theta)],
+                       [0, np.sin(theta),  np.cos(theta)],
+                      ])
+        Ry = np.array([[np.cos(phi),  0, np.sin(phi)],
+                       [0,            1,           0],
+                       [-np.sin(phi), 0, np.cos(phi)]
+                      ])
+        Rz = np.array([[np.cos(psi), -np.sin(psi), 0],
+                       [np.sin(psi),  np.cos(psi), 0],
+                       [0,              0,         1]
+                      ])
+        return Rx@Ry@Rz@np.array([x, y, z])
 
     def dt(i:int)->float:
         """calcule le temps entre 2 acquisitions"""
         if i>0:
-            s_1 = df_imu['Timestamp'][i].second
-            ms_1 = df_imu['Timestamp'][i].microsecond*1e-6
-            s_0 = df_imu['Timestamp'][i-1].second
-            ms_0 = df_imu['Timestamp'][i-1].microsecond*1e-6
-        return s_1 + ms_1 - s_0 + m_0
+            s_1 = eval(df_imu['Timestamp'][i]).second
+            ms_1 = eval(df_imu['Timestamp'][i]).microsecond*1e-6
+            s_0 = eval(df_imu['Timestamp'][i-1]).second
+            ms_0 = eval(df_imu['Timestamp'][i-1]).microsecond*1e-6
+        return (s_1 + ms_1) - (s_0 + ms_0)
 
+    # filtre.R = calcul_R(source_gnss + ".csv")
+    # filtre.Q = calcul_Q(source_imu + ".csv")*10
 
-    df_gnss, df_imu, record = initialisation_des_csv(source_gnss, source_imu, csv_out)
+    df_gnss, df_imu, record = initialisation_des_csv(source_gnss, csv_out, source_imu)
 
+    # print(df_gnss.describe())
     conversion(df_gnss)
 
     #initialisation du premier x du filtre
-    filtre.x = np.array([df_gnss['Latitude'][0],
-                      df_gnss['Longitude'][0],
-                      df_gnss['Altitude'][0],
-                      0, 0, 0 ])
+    filtre.x = np.block([to_cartesien(df_gnss['Latitude'][0],
+                                      df_gnss['Longitude'][0],
+                                      df_gnss['Altitude'][0]),
+                                        0, 0, 0 ])
 
+    err = 0.
     j = 1
-    while i<df_imu.shape[0] and i<df_gnss.shape[0]:
+    i = 1
+    while i<df_gnss.shape[0]:
+        u = _rotation(df_imu['Accel X'][i],
+                      df_imu['Accel Y'][i],
+                      df_imu['Accel Z'][i],
+                      df_imu['Gyro X'][i],
+                      df_imu['Gyro Y'][i],
+                      df_imu['Gyro Z'][i],)
+        u[2] -= err
 
-        while (df_imu['TimeStamp'][i] < df_gnss['Date_Formatee'][j]):
+        while (eval(df_imu['Timestamp'][i]) < df_gnss['Date_Formatee'][j]) and i<df_imu.shape[0]:
             filtre.F = F(dt(i))
             filtre.G = G(dt(i))
             filtre(u)
             i = i+1
-            u = np.array([df_imu['Accel X'][i],
-                        df_imu['Accel Y'][i],
-                        df_imu['Accel Z'][i],
-                        ])
-
+            u = _rotation(df_imu['Accel X'][i],
+                          df_imu['Accel Y'][i],
+                          df_imu['Accel Z'][i],
+                          df_imu['Gyro X'][i],
+                          df_imu['Gyro Y'][i],
+                          df_imu['Gyro Z'][i],)
+            u[2] -= err
         filtre.F = F(dt(i))
         filtre.G = G(dt(i))
-        y = np.array([df_gnss['Latitude'][j],
-                        df_gnss['Longitude'][j],
-                        df_gnss['Altitude'][j]
-                        ])
+        y = to_cartesien(df_gnss['Latitude'][i],
+                         df_gnss['Longitude'][i],
+                         df_gnss['Altitude'][i])
         filtre(u, y)
         j += 1
         i = i+1
 
-        record.append_row([df_imu['TimeStamp'][i] ,filtre.x[0], filtre.x[1], filtre.x[2]])
+        X = to_spherique(*filtre.x[:3])
+
+        record.append_row([df_imu['Timestamp'][i] ,X[0]+0.000547, X[1], X[2]])
 
 if __name__ == "__main__":
     F = np.eye(6)
