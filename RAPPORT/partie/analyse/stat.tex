@@ -1,8 +1,36 @@
-création d'une classe Donnnes --> match des times step\\
-pour une acquisition toutes les donées rassemblees par indicde de temps\\
-acces aux données de la raspberry, des telephones de Chloé et Thomas\\
-Tests des rangs\\
-Boxplots\\
-trace de la distance entre deux source (entre Thomas et RPI par exemple)\\
-possibilite de faire tous ces tests amsi avec les données brutes (latitude et longitude)\\
+
+
+L'objectif de cette section est d'analyser la qualité et la cohérence des données issues de différents capteurs GPS, en l'occurrence ceux de la Raspberry Pi, du téléphone de Chloé et du téléphone de Thomas. Une approche statistique rigoureuse a été mise en place pour comparer les données géographiques collectées simultanément par ces dispositifs.
+
+\subsubsection*{Prétraitement et structuration des données}
+
+Une classe \texttt{Donnees} a été implémentée pour centraliser et structurer les données GPS. Elle permet :
+\begin{itemize}
+    \item l'importation automatique des fichiers \texttt{.gpx} ou \texttt{.csv} issus de chaque capteur,
+    \item le formatage homogène des timestamps en objets \texttt{datetime},
+    \item l’alignement temporel des données par un mécanisme de correspondance des timestamps, indispensable pour toute comparaison cohérente entre capteurs.
+\end{itemize}
+
+Les données sont ainsi regroupées par index de temps, créant une base unifiée sur laquelle les tests statistiques peuvent être appliqués.
+
+\subsubsection*{Méthodes statistiques utilisées}
+
+Plusieurs méthodes ont été retenues pour analyser la cohérence des données GPS :
+
+\begin{itemize}
+    \item \textbf{Distance géodésique (en mètres)} : calculée entre deux paires de coordonnées (latitude, longitude) à chaque instant, cette mesure permet d’évaluer l’erreur spatiale entre deux sources.
+    
+    \item \textbf{Erreur en degrés} : les différences absolues de latitude et de longitude sont également calculées, pour compléter l’analyse métrique par une approche angulaire.
+    
+    \item \textbf{Test des rangs de Wilcoxon} : ce test non paramétrique est utilisé pour comparer les distributions des erreurs entre deux capteurs. Il est adapté aux données qui ne suivent pas nécessairement une distribution normale, ce qui est souvent le cas pour les données GPS bruitées.
+    
+    \item \textbf{Boxplots} : ces diagrammes permettent de visualiser la dispersion des erreurs, la présence de valeurs extrêmes et la médiane, fournissant une lecture synthétique des écarts entre capteurs.
+    
+    \item \textbf{Analyse temporelle des erreurs} : une courbe représentant l'évolution des erreurs permet d'identifier des pics d’incohérence ou des phases plus stables.
+    
+    \item \textbf{Tests de Fisher, Student et du $\chi 2$} : ces tests ont été utilisés pour vérifier l'égalité des variances ou des moyennes entre les distributions d'erreurs. Ils complètent le test de Wilcoxon pour offrir une lecture plus complète de la consistance des données.
+\end{itemize}
+
+\subsubsection*{Résultats et interprétations}
+
 
