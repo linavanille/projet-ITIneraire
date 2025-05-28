@@ -40,14 +40,14 @@ def get_acquisitions(type:str):
     elif type == "raw":
         root_destination = ""
 
-    return {root_source+'gnss_acq': root_destination+'parking',
-            root_source+'GPS/leclerc/GPS_leclerc_RPI': root_destination+'leclerc_RPI',
+    return {root_source+'GPS/leclerc/GPS_leclerc_RPI': root_destination+'leclerc_RPI',
             root_source+'GPS/leclerc/GPS_leclerc_Thomas': root_destination+'leclerc_Tho',
             root_source+'GPS/leclerc/GPS_leclerc_Chloe': root_destination+'leclerc_Chl',
             root_source+'GPS/borne/GPS_borne_RPI': root_destination+'borne_RPI',
             root_source+'GPS/borne/GPS_borne_Thomas': root_destination+'borne_Tho',
             root_source+'GPS/borne/GPS_borne_Chloe': root_destination+'borne_Chl',
-            root_source+'DoubleAcquisition/acquisitionGPS': root_destination+'magellan'
+            root_source+'DoubleAcquisition/acquisitionGPS': root_destination+'magellan',
+            root_source+'Soutenance/acquisition' : root_destination+'mainAcquisition'
         }
 
 def generation_fichiers(type_data_input:str,
@@ -107,7 +107,7 @@ def generation_fichiers(type_data_input:str,
                 plot_GNSS(v+".csv", out_path)
             else:
                 print(f'Génération de la carte de {GREEN}{v}{RESET}')
-                plot_GNSS(v+".csv", out_path)
+                plot_GNSS(k+".csv", out_path)
 
             print("\n")
     # TODO faire le cas avec un fichier de prediction

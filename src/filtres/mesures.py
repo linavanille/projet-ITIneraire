@@ -2,6 +2,7 @@
 """ Module de récupération des mesures"""
 
 import numpy as np
+import math as m
 
 from datetime import datetime as dt
 import GPS.gnss as gs
@@ -36,17 +37,17 @@ class Mesures ():
         longitude = self._data_gnss.longitude.coords_DD
         altitude = self._data_gnss.altitude
 
-        return np.array([longitude, latitude, altitude])
+        return Mesures.to_cartesien(latitude, longitude, altitude)
 
     def get_utc(self):
-        return self.to_cartesien(*self._data_gnss.utc)
+        return self._data_gnss.utc
 
     @property
     def imu(self)->np.array:
         self._data_imu = read_IMU(self._range_acc, self._range_gyro)
-        return Mesures._rotation(*self._data_imu)
+        return Mesures.rotation(*self._data_imu)
 
-    def _rotation(x, y, z, theta, phi, psi)->np.array:
+    def rotation(x, y, z, theta, phi, psi)->np.array:
         """Applique une matrice de rotation sur les accélérations"""
 
         theta, phi, psi = np.pi/180*theta, np.pi/180*phi, np.pi/180*psi

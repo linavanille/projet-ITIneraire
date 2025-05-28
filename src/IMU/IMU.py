@@ -31,7 +31,7 @@ def read_raw_data(device_addr, start_register):
 
     Arguments:
     - device_addr: l'adresse I2C du composant
-    - start_register: l'addresse du premier registre à lire 
+    - start_register: l'addresse du premier registre à lire
 
     Résultat: les données acquises de l'accélérateur ou gyroscope sur ces 3 axes (en valeur entières brutes signées)
     """
@@ -51,11 +51,11 @@ def read_IMU(accel_range,gyro_range):
     """
     Lit les données d'acquisition de l'IMU (accéléromètre et gyroscope)
 
-    Arguments: 
+    Arguments:
     - accel_range: la range de l'accélérateur
     - gyro_range: la range du gyroscope
 
-    Résultat: Les données acquises par l'accélérateur (accel_x,accel_y,accel_z) et le gyroscope (gyro_x,gyro_y,gyro_z) 
+    Résultat: Les données acquises par l'accélérateur (accel_x,accel_y,accel_z) et le gyroscope (gyro_x,gyro_y,gyro_z)
     """
     accel_x,accel_y,accel_z = read_accelerometer(accel_range)
     gyro_x,gyro_y,gyro_z = read_gyroscope(gyro_range)

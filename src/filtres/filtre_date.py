@@ -14,7 +14,6 @@ def remplacement_date_formatee_gps(data):
         raise TypeError("n'accepte que des DataFrame")
 
     c = data.columns
-    print(c)
     nom_col_date = 'UTC'
     sep = {"sep_jour":"/","sep_central":"-","sep_heure":":"}
 

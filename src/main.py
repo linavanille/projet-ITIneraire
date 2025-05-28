@@ -5,10 +5,11 @@ import pandas as pd
 from datetime import datetime as dtime
 from GPS.utils import CSVHandler
 
-# import front
+# from performances import front
+from performances.valeurs_aberrantes import nettoyer_csv_gps
+
 from filtres import *
 from GPS.Button import Button
-from mesures import Mesures
 
 def F(dt:float, n:int=6):
     """Definition dynamique de la matrice F"""
@@ -35,14 +36,14 @@ def initialisation_Kalman(dt:float)->FiltreKalman:
 
 def initialisation_resultats(csv_out)->pd.DataFrame:
     record = CSVHandler(csv_out)
-    record.create_csv_with_header(['TimeStamp',
-                                   'Longitude',
+    record.create_csv_with_header(['UTC',
                                    'Latitude',
+                                   'Longitude',
                                    'Altitude',])
 
-    df = pd.DataFrame(columns=['TimeStamp',
-                               'Longitude',
+    df = pd.DataFrame(columns=['UTC',
                                'Latitude',
+                               'Longitude',
                                'Altitude'])
     return record, df
 
@@ -68,8 +69,8 @@ def acquisition(filtre:FiltreKalman, csv_out:str)->pd.DataFrame:
     #initialisation des mesures
     rpi = Mesures()
     y_old = np.zeros(3)
-    y_new = 0
-    y = np.zeros(3)
+    y_new = np.zeros(3)
+    # y = np.zeros(3)
     u = 0
     filtre.x = np.block([rpi.origine, np.zeros(3)])
 
@@ -86,33 +87,33 @@ def acquisition(filtre:FiltreKalman, csv_out:str)->pd.DataFrame:
     p_gnss.start()
     print("Acquisitions en cours...")
 
+    #initialisation bouton
     b = Button(17)
     def press():
         file_arret.put("fin")
     time.sleep(1)
     b.on_press(press)
-    #initialisation bouton
 
-    j = 0
     #main
     while file_arret.empty():
-        j+=1
         try:
             if not file_imu.empty():
                 u = file_imu.get()
             if not file_gnss.empty():
                 y_new = file_gnss.get()
 
-            if y_old == y_new:
+
+            if all(y_old == y_new):
                 filtre(u)
             else:
                 filtre(u, y_new)
                 y_old = y_new
-                j = 0
 
-            X = Mesures.to_spherique(*filtre.x)
+
+            X = Mesures.to_spherique(*filtre.x[:3])
+            print(X)
             output.append_row([rpi.get_utc(), X[0], X[1], X[2]])
-            result.loc[len(result)] = ({'TimeStamp': rpi.getutc(),
+            result.loc[len(result)] = ({'TimeStamp': rpi.get_utc(),
                                         'Latitude' : X[0],
                                         'Longitude' : X[1],
                                         'Altitude' : X[2],
@@ -122,6 +123,8 @@ def acquisition(filtre:FiltreKalman, csv_out:str)->pd.DataFrame:
             b.cleanup()
             break
 
+    p_imu.join()
+    p_gnss.join()
     print("Acquisitions finies !\n")
     return result
 
@@ -156,11 +159,16 @@ if __name__ == "__main__":
     #         app.credit
     #     elif self.help == "H" :
     #         app.help
-    csv_out = ""
-    html_out = ""
-    gpx_out = ""
+    # b = Button(17)
+    # def on_press():
+    #     b.cleanup()
+    csv_out = "./output/Soutenance/acquisition.csv"
+    html_out = "./output/HTML/Soutenance/carte.html"
+    gpx_out = "./output/GPX/Soutenance/carte.gpx"
     filtre = initialisation_Kalman(0.1)
     df = acquisition(filtre, csv_out)
-    plot_gnss(csv_out, html_out)
-    # csv_to_gpx.main(csv_out, gpx_out)
-    print(df.describe())
+    nettoyer_csv_gps(csv_out)
+
+    # print("En Attente...")
+    # while True:
+    #     time.sleep(1)

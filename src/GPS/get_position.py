@@ -1,6 +1,6 @@
 import time
-from GPS.gnss import *
-from GPS.utils import *
+from gnss import *
+from utils import *
 import argparse
 
 COORDS_DD=0
@@ -16,11 +16,11 @@ def get_position(csv_out=None,no_LCD=False):
   Lit les données GNSS et affiche la position du module GNSS sur l'invité de commandes et le LCD.
 
   Arguments:
-  - csv_out: Le chemin et nom de fichier CSV pour l'enregistrement des acquisitions GNSS. 
+  - csv_out: Le chemin et nom de fichier CSV pour l'enregistrement des acquisitions GNSS.
              S'il n'est pas défini, aucun enregistrement n'est effectué.
-  - no_LCD: Booléen optionnel indiquant si on ne veut pas utiliser le LCD. Valeur par défaut à False. 
+  - no_LCD: Booléen optionnel indiquant si on ne veut pas utiliser le LCD. Valeur par défaut à False.
   """
-  
+
   # A COMPLETER
   GNSS_DEVICE_ADDR = 0x20
   #LCD_DEVICE_ADDR = ...
@@ -40,15 +40,15 @@ def get_position(csv_out=None,no_LCD=False):
 
   #if not(no_LCD):
     #lcd_display = LCD(LCD_DEVICE_ADDR)
-  
+
   try:
-    i=0
-    while i<NB_ACQUISITION:
+    # i=0
+    while True:
       # Actualisation des données GNSS
       gnss.update()
       if save_csv and gnss.reception_ok:
         record.append_row([gnss.utc,gnss.latitude.coords_DD,gnss.longitude.coords_DD, gnss.altitude])
-      
+
       # A COMPLETER
       latitude = gnss.latitude.coords_DD
       longitude = gnss.longitude.coords_DD
@@ -62,11 +62,11 @@ def get_position(csv_out=None,no_LCD=False):
       #else:
         #if not(no_LCD):
           #lcd_display.afficher("Recherche de    signal GNSS...")
-      
+
       # Affichage sur console
       if gnss.reception_ok:
         print("--------------------------------------------------------------")
-        print(f"Acquistion {i}")
+        #print(f"Acquistion {i}")
         print(gnss.utc)
         print(f"Nombre de satellites utilisés: {gnss.number_satellites}")
         print(f"Latitude : {latitude}")
@@ -75,9 +75,9 @@ def get_position(csv_out=None,no_LCD=False):
         print("")
       else:
         print("Recherche de signal GNSS...")
-      i+=1  
+      # i+=1
       time.sleep(1)
-      
+
   except KeyboardInterrupt as e:
     print("Arrêt du programme")
     #if not(no_LCD):
@@ -85,7 +85,7 @@ def get_position(csv_out=None,no_LCD=False):
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser()
-  parser.add_argument('--no-LCD', 
+  parser.add_argument('--no-LCD',
                       action='store_true',
                       help="Permet de ne rien afficher sur le LCD.")
   parser.add_argument('--save-path', '-s',
@@ -94,5 +94,5 @@ if __name__ == "__main__":
                       help="Chemin où sauvegarder les données."
     )
   args = parser.parse_args()
-  
+
   get_position(args.save_path,args.no_LCD)

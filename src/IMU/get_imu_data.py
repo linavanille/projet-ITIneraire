@@ -11,7 +11,7 @@ def get_imu_data(csv_out=None):
     Arguments:
     - csv_out: le chemin du fichier CSV d'enregistrement (si définit à None, aucun enregistrement n'est effectué)
     """
-    
+
     nb_acquisition = 100
 
     # Paramètres d'acquisition
@@ -37,7 +37,8 @@ def get_imu_data(csv_out=None):
     initialize_sensors(accel_range, accel_freq, gyro_range, gyro_freq)
 
     try:
-        for i in range(nb_acquisition):
+        # for i in range(nb_acquisition):
+        while True:
             start_time = time.time()
 
             # Lecture des données
