@@ -34,7 +34,7 @@ def get_acquisitions(type:str):
     if type == "filtre":
         root_destination = "./output/CSV_Filtre/"
     elif type == "filtre_prediction":
-        root_destination = "./output/CSV_FiltrePrediction/prediction_"
+        root_destination = "./output/Historique/"
         return root_source+"DoubleAcquisition/acquisitionIMU", \
                {root_source+"DoubleAcquisition/acquisitionGPS": root_destination+'magellan'}
     elif type == "raw":

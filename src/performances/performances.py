@@ -16,8 +16,8 @@ class Performances:
 		# data = np.array(valid_rows)
 		data = pd.read_csv(chemin)
 		self.timestamps = data['UTC']
-		self.latitudes = data['Latitude'].astype(float)
-		self.longitudes = data['Longitude'].astype(float)
+		self.latitudes = data['Latitude']
+		self.longitudes = data['Longitude']
 		# self.altitudes = np.char.replace(data[:, 3], ',', '.').astype(float)
 		self.altitudes = data['Altitude'].astype(float)
 		self.dates = np.array([ts[:10].replace("/", "-") for ts in self.timestamps])
@@ -44,9 +44,9 @@ class Performances:
 		return {
 			"Date": self.dates[-1],
 			"Heure": self.heures[-1],
-			"Latitude": self.latitudes[-1],
-			"Longitude": self.longitudes[-1],
-			"Altitude": self.altitudes[-1],
+			"Latitude": self.latitudes[self.latitudes.size - 1],
+			"Longitude": self.longitudes[self.longitudes.size - 1],
+			"Altitude": self.altitudes[self.altitudes.size - 1],
 		}
 
 	def distance_totale(self):
