@@ -148,7 +148,7 @@ class Performances2:
 
 
 def main():
-	perf = Performances2("./output/CSV_FiltrePrediction/test.csv")
+	perf = Performances2("./output/Historique/acquisition1.csv")
 
 	v = perf.vitesse_entre_deux_points(perf.latitudes[0], perf.longitudes[0], perf.heures[0],perf.latitudes[1], perf.longitudes[1], perf.heures[1])
 	print(f"Vitesse entre les deux premiers points : {v:.2f} m/s")

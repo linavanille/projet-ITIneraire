@@ -230,7 +230,7 @@ class Performances:
 
 
 def main():
-	test = Performances("./output/CSV_FiltrePrediction/test.csv")
+	test = Performances("./output/Historique/acquisition1.csv")
 	print("Point de départ:", test.point_depart())
 	print("Point d'arrivée:", test.point_arrivee())
 	print("Durée totale en secondes:", test.duree_totale_secondes())

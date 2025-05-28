@@ -15,7 +15,7 @@ class MenuPerformances:
 	def selection_fichier_csv(self):
 		os.system("clear")
 		print("---- Sélection du fichier CSV ----\n")
-		historique = "./output/CSV_FiltrePrediction/"
+		historique = "./output/Historique/"
 		fichiers = [f for f in os.listdir(historique) if f.endswith(".csv")]
 		for i, fichier in enumerate(fichiers):
 			print(f"{i+1} - {fichier}")

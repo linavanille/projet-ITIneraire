@@ -28,6 +28,3 @@ def nettoyer_csv_gps(chemin_csv, taille_fenetre=27, facteur_iqr=3.0):
 	df_clean.to_csv(chemin_csv, index=False)
 
 	print(f"{len(df) - len(df_clean)} lignes supprimées.")
-
-
-# nettoyer_csv_gps("./historique/test.csv")

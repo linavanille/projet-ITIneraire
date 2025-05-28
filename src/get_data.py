@@ -11,6 +11,9 @@ from performances.valeurs_aberrantes import nettoyer_csv_gps
 from filtres import *
 from GPS.Button import Button
 
+RED = "\033[31m"
+RESET = "\033[0m"
+
 def F(dt:float, n:int=6):
     """Definition dynamique de la matrice F"""
     F_dt = np.eye(n)
@@ -86,6 +89,7 @@ def acquisition(filtre:FiltreKalman, csv_out:str)->pd.DataFrame:
     p_imu.start()
     p_gnss.start()
     print("Acquisitions en cours...")
+    print(f"Pressez le {RED}bouton{RESET} pour stopper la machine")
 
     #initialisation bouton
     b = Button(17)
@@ -111,7 +115,7 @@ def acquisition(filtre:FiltreKalman, csv_out:str)->pd.DataFrame:
 
 
             X = Mesures.to_spherique(*filtre.x[:3])
-            print(X)
+
             output.append_row([rpi.get_utc(), X[0], X[1], X[2]])
             result.loc[len(result)] = ({'TimeStamp': rpi.get_utc(),
                                         'Latitude' : X[0],
@@ -128,48 +132,17 @@ def acquisition(filtre:FiltreKalman, csv_out:str)->pd.DataFrame:
     print("Acquisitions finies !\n")
     return result
 
-def bouton_preacquisition(com_bouton):
-    b = Bouton(17)
-    def press():
-        com_bouton.put("debut")
-    return b
+def get_data(csv_destination:str)->None:
+    """Main fonction d'acquisition des données"""
+    filtre = initialisation_Kalman(0.1)
+    df = acquisition(filtre, csv_destination)
+    nettoyer_csv_gps(csv_destination)
 
 if __name__ == "__main__":
-    # app = Front()
 
-    # choix = ''
-    # while choix != "Q" :
+    csv_out = "./output/Soutenance/acquisition.csv"
+    get_data(csv_out)
 
-    #     app.menu()
-
-    #     choix = input("Menu : ").upper()
-
-    #     if choix == "1" :
-    #         app.historique
-    #     elif choix == "2" :
-    #         entree = ''
-    #         com_bouton = multiprocessing.Queue()
-    #         b = bouton_preacquisition(com_bouton)
-    #         while entree != R :
-    #             app.avant_acquisition
-
-
-
-    #     elif choix == "C" :
-    #         app.credit
-    #     elif self.help == "H" :
-    #         app.help
-    b = Button(17)
-    def on_press():
-        print("BREEEEEEEEEEEEE")
-    i = 0
-    while True:
-        print(i)
-        i+=1
-        time.sleep(2)
-    b.cleanup()
-
-    # csv_out = "./output/Soutenance/acquisition.csv"
     # html_out = "./output/HTML/Soutenance/carte.html"
     # gpx_out = "./output/GPX/Soutenance/carte.gpx"
     # filtre = initialisation_Kalman(0.1)

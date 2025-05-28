@@ -3,4 +3,4 @@
 # from .get_distance import *
 # from .get_position import *
 # from .utils import CSVHandler
-from .plot_gnss import *
+from .plot_gnss import plot_GNSS

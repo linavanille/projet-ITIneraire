@@ -1,142 +1,31 @@
-from multiprocessing import Queue, Process
+import multiprocessing
 import time
-import numpy as np
-import pandas as pd
-from datetime import datetime as dtime
-from GPS.utils import CSVHandler
+import os
+import random
+from performances import csv_to_gpx
 
-# from performances import front
-from performances.valeurs_aberrantes import nettoyer_csv_gps
-
-from filtres import *
+from GPS.plot_gnss import plot_GNSS
 from GPS.Button import Button
+from performances.front import Front
+from get_data import get_data
 
-def F(dt:float, n:int=6):
-    """Definition dynamique de la matrice F"""
-    F_dt = np.eye(n)
-    F_dt [0:n//2, n//2:]  = dt*np.eye(n//2)
-    return F_dt
+RESET = "\033[0m"
+GREEN = "\033[32m"
+BLUE = "\033[34m"
 
-def G(dt:float, n:int=3):
-    """Definition dynamique de la matrice G"""
-    g = np.block([[1/2*dt**2*np.eye(n)],
-                     [dt*np.eye(n)]
-                    ])
-    return g
+def main()->None:
 
-def initialisation_Kalman(dt:float)->FiltreKalman:
-    """Initialisation du filtre de Kalman"""
-    H = np.block([np.eye(3), np.zeros((3, 3))])
-    # R = None
-    # Q = None
-    filtre = FiltreKalman(F(dt), H, G(dt)) # Rajouter R et Q
-    filtre.x = np.zeros(6)
+    iid = random.randint(1, 100)*random.randint(1, 5)
 
-    return filtre
-
-def initialisation_resultats(csv_out)->pd.DataFrame:
-    record = CSVHandler(csv_out)
-    record.create_csv_with_header(['UTC',
-                                   'Latitude',
-                                   'Longitude',
-                                   'Altitude',])
-
-    df = pd.DataFrame(columns=['UTC',
-                               'Latitude',
-                               'Longitude',
-                               'Altitude'])
-    return record, df
-
-def get_donnees_imu(rpi:Mesures, file_imu:Queue, arret:Queue)->None:
-    """Processus de récupération des données de l'IMU"""
-    # rpi = Mesures()
-    while arret.empty():
-        file_imu.put(rpi.imu)
-        time.sleep(0.1)
-
-def get_donnees_gnss(rpi:Mesures, file_gnss:Queue, arret:Queue)->None:
-    """Processus de récupération des données GPS"""
-    # rpi = Mesures()
-    while arret.empty():
-        file_gnss.put(rpi.gnss)
-        time.sleep(1)
-
-def acquisition(filtre:FiltreKalman, csv_out:str)->pd.DataFrame:
-    """Fonction d'acquisition en directe des données de la RPi"""
-
-    output, result = initialisation_resultats(csv_out)
-
-    #initialisation des mesures
-    rpi = Mesures()
-    y_old = np.zeros(3)
-    y_new = np.zeros(3)
-    # y = np.zeros(3)
-    u = 0
-    filtre.x = np.block([rpi.origine, np.zeros(3)])
-
-    #initialisation multiprocess
-    file_imu = Queue()
-    file_gnss = Queue()
-    file_arret = Queue()
-
-    #initialisation des differents processus qui tourneront en parallèle
-    p_imu = Process(target=get_donnees_imu, args=(rpi, file_imu,file_arret,))
-    p_gnss = Process(target=get_donnees_gnss, args=(rpi,file_gnss,file_arret,))
-
-    p_imu.start()
-    p_gnss.start()
-    print("Acquisitions en cours...")
-
-    #initialisation bouton
     b = Button(17)
+    com_bouton = multiprocessing.Queue()
     def press():
-        file_arret.put("fin")
+        com_bouton.put('debut')
     time.sleep(1)
+
     b.on_press(press)
 
-    #main
-    while file_arret.empty():
-        try:
-            if not file_imu.empty():
-                u = file_imu.get()
-            if not file_gnss.empty():
-                y_new = file_gnss.get()
-
-
-            if all(y_old == y_new):
-                filtre(u)
-            else:
-                filtre(u, y_new)
-                y_old = y_new
-
-
-            X = Mesures.to_spherique(*filtre.x[:3])
-            print(X)
-            output.append_row([rpi.get_utc(), X[0], X[1], X[2]])
-            result.loc[len(result)] = ({'TimeStamp': rpi.get_utc(),
-                                        'Latitude' : X[0],
-                                        'Longitude' : X[1],
-                                        'Altitude' : X[2],
-                                        })
-            time.sleep(0.1)
-        except KeyboardInterrupt:
-            b.cleanup()
-            break
-
-    p_imu.join()
-    p_gnss.join()
-    print("Acquisitions finies !\n")
-    return result
-
-def bouton_preacquisition(com_bouton):
-    b = Bouton(17)
-    def press():
-        com_bouton.put("debut")
-    return b
-
-if __name__ == "__main__":
     # app = Front()
-
     # choix = ''
     # while choix != "Q" :
 
@@ -148,27 +37,27 @@ if __name__ == "__main__":
     #         app.historique
     #     elif choix == "2" :
     #         entree = ''
-    #         com_bouton = multiprocessing.Queue()
-    #         b = bouton_preacquisition(com_bouton)
-    #         while entree != R :
-    #             app.avant_acquisition
 
+    while com_bouton.empty():
+        os.system('clear')
+        print("-- Appuyer sur le bouton pour lancer une acquisition--")
 
+        time.sleep(5)
+        # app.avant_acquisition
 
-    #     elif choix == "C" :
-    #         app.credit
-    #     elif self.help == "H" :
-    #         app.help
-    # b = Button(17)
-    # def on_press():
-    #     b.cleanup()
-    csv_out = "./output/Soutenance/acquisition.csv"
-    html_out = "./output/HTML/Soutenance/carte.html"
-    gpx_out = "./output/GPX/Soutenance/carte.gpx"
-    filtre = initialisation_Kalman(0.1)
-    df = acquisition(filtre, csv_out)
-    nettoyer_csv_gps(csv_out)
+    b.cleanup()
+    csv_out = f"./output/Historique/acquisition_{iid}.csv"
+    html_out = f"./output/Historique/HTML/"
+    gpx_out = f"./output/Historique/GPX/acquisition_{iid}.gpx"
 
-    # print("En Attente...")
-    # while True:
-    #     time.sleep(1)
+    print(f"C'est parti !!\n Filtrage de l'acquisition dans {GREEN}{csv_out}{RESET}")
+    get_data(csv_out)
+    print(f'Génération de {BLUE}{csv_out}{RESET} dans {GREEN}{html_out}{RESET}')
+    plot_GNSS(csv_out, html_out)
+    print(f'Génération de {BLUE}{csv_out}{RESET} dans {GREEN}{gpx_out}{RESET}')
+    csv_to_gpx.main(csv_out, gpx_out)
+
+    print('fin')
+
+if __name__ == "__main__":
+    main()

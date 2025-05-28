@@ -1,7 +1,8 @@
 #!/usr/bin/env python 3
 
-from performances import Performances, main
+from performances import *
 import os
+import time
 
 class Front () :
 
@@ -22,27 +23,30 @@ class Front () :
 			print("Q - Quitter")
 
 		choix = ''
-		while choix != "Q" :
 
-			affichage_menu()
+		affichage_menu()
 
-			choix = input("Menu : ").upper()
+		choix = input("Menu : ").upper()
 
-			if choix == "1" :
-				self.historique
-			elif choix == "2" :
-				self.mode
-			elif choix == "C" :
-				self.credit
-			elif self.help == "H" :
-				self.help
+		if choix == "1" :
+			self.historique
+		elif choix == "2" :
+			self.mode
+		elif choix == "C" :
+			self.credit
+		elif self.help == "H" :
+			self.help
+		elif choix == "Q":
+			return
+		else:
+			self.menu()
 
 	@property
 	def historique(self):
 		def affichage_historique():
 			os.system("clear")
 			print("---- Liste des acquisitions passées ----\n")
-			liste_acquisitions = os.listdir("./output/CSV_FiltrePrediction/")
+			liste_acquisitions = os.listdir("./output/Historique/")
 			for i in range(len(liste_acquisitions)):
 				print(f"\t{i+1} - {liste_acquisitions[i][:-4]}")
 			print("\nR - Retour menu")
@@ -76,16 +80,18 @@ class Front () :
 
 		choix = ''
 		selection = "Classique"
-		while choix != "R" :
-			affichage_mode(selection)
-			choix = input("Option : ").upper()
+		affichage_mode(selection)
+		choix = input("Option : ").upper()
 
-			if choix == "1" :
-				selection = "Classique"
-				self.acquisition_classique
-			elif choix == "2" :
-				selection = "Spécial"
-				self.acquisition_speciale
+		if choix == "1" :
+			selection = "Classique"
+			self.acquisition_classique
+		elif choix == "2" :
+			selection = "Spécial"
+			self.acquisition_speciale
+		elif choix == "R":
+			self.menu()
+
 
 	@property
 	def credit(self):

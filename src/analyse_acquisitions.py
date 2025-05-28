@@ -47,7 +47,7 @@ def get_acquisitions(type:str):
             root_source+'GPS/borne/GPS_borne_Thomas': root_destination+'borne_Tho',
             root_source+'GPS/borne/GPS_borne_Chloe': root_destination+'borne_Chl',
             root_source+'DoubleAcquisition/acquisitionGPS': root_destination+'magellan',
-            root_source+'Soutenance/acquisition' : root_destination+'mainAcquisition'
+            # root_source+'Historique/acquisition' : root_destination+'mainAcquisition'
         }
 
 def generation_fichiers(type_data_input:str,
