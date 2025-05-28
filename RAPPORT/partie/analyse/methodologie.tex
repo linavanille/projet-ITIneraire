@@ -1,8 +1,11 @@
-fréquence d'echantillonage \\
-comment synchroniser temporellement \\
-elimination des valeurs aberrantes (Lina t'en avais parlé tout à l'heure)\\
-réglage du filtre de Kalman (calcul de R et Q)
+L'analyse des performances d'un filtre n'est pas aisé.
+On ne peut savoir à l'avance si tel ou tel réglage va améliorer ou détériorer nos acquisition.
 
+Pour le paramètrage, il n'y a donc pas de miracle : il faut tester et observer.
+
+C'est le rôle du module \textit{analyses\_acquisitons} qui génère les fichiers html des données brutes ou bien des données filtrées de plusieurs acquisitions différentes.
+
+Avec les résultats de ce module, nous nous sommes rendu compte que les matrice de covariance R et Q affectait grandement nos données filtrées
 \[
 R =
 \begin{bmatrix}
@@ -21,3 +24,27 @@ Q =
 0 & 0 & \mathrm{Var}(\text{Accel Z})
 \end{bmatrix}
 \]
+À la base, elles représentent l'erreur aléatoire de nos capteurs, mais en utilisant les formules utilisées ci-dessous, nous obtenons des résulats aberrants.
+
+\begin{table}[!h]
+    \begin{center}
+        \includegraphics[width = 10cm]{acquisitionAberrante.png}
+    \end{center}
+    \caption{Acquisition aberrante}
+\end{table}
+
+Par manque de temps, nous avons préféré garder des valeurs par défaut. La matrice identité pour Q et la matrice nulle pour R.
+
+De plus nous nous sommes aperçu d'une erreur systématique de 0.0006 degré pour la latitude.
+Cette erreur vient peut être d'une mauvaise conversion du système cartésien au système sphérique.
+
+N'ayant pas eu le temps d'investiguer, nous avons corriger cette erreur directement dans l'écriture des csv.
+\newpage
+\begin{table}[!h]
+    \begin{center}
+        \includegraphics[width = 10cm]{erreurSystématiqueLatitude.png}
+    \end{center}
+    \caption{Acquisition aberrante}
+\end{table}
+
+
