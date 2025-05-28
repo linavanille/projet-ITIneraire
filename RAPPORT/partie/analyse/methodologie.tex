@@ -2,3 +2,22 @@ fréquence d'echantillonage \\
 comment synchroniser temporellement \\
 elimination des valeurs aberrantes (Lina t'en avais parlé tout à l'heure)\\
 réglage du filtre de Kalman (calcul de R et Q)
+
+\[
+R =
+\begin{bmatrix}
+\mathrm{Var}(\text{Longitude}) & 0 & 0 \\
+0 & \mathrm{Var}(\text{Latitude}) & 0 \\
+0 & 0 & \mathrm{Var}(\text{Altitude})
+\end{bmatrix}
+\]
+
+
+\[
+Q =
+\begin{bmatrix}
+\mathrm{Var}(\text{Accel X}) & 0 & 0 \\
+0 & \mathrm{Var}(\text{Accel Y}) & 0 \\
+0 & 0 & \mathrm{Var}(\text{Accel Z})
+\end{bmatrix}
+\]
