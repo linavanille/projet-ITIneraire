@@ -6,17 +6,17 @@ from datetime import datetime
 def convert_gpx_to_csv(gpx_file, csv_file):
     """
     Convertit un fichier GPX en un fichier CSV avec les colonnes 'Timestamp', 'Latitude' et 'Longitude'.
-    
+
     Arguments:
     - gpx_file: Chemin du fichier GPX d'entrée.
     - csv_file: Chemin du fichier CSV de sortie.
     """
-    
+
     def get_namespace(element):
         """ Récupère l'espace de noms utilisé dans le fichier GPX """
         match = re.match(r'\{.*\}', element.tag)
         return match.group(0) if match else ''
-    
+
     """
     def format_time(date_str):
         date_obj = datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%SZ")
@@ -57,19 +57,19 @@ def convert_gpx_to_csv(gpx_file, csv_file):
 
 def correct_csv(csv_file):
     """
-    Corrige le format de date d'un fichier CSV (colonne UTC). 
+    Corrige le format de date d'un fichier CSV (colonne UTC).
     Un petit problème dans l'enregistrement de la chaîne de caractères
     Dsl... Mais c'est corrigé...
-    
+
     Arguments:
     - csv_file: Chemin du fichier CSV à corriger.
     """
     df = pd.read_csv(csv_file)
-    
+
     def format_date(date_str):
         date_obj = datetime.strptime(date_str, "%Y/%m/%d - %H:%M:%S")
         return f"{date_obj.year:04}/{date_obj.month:02}/{date_obj.day:02} - {date_obj.hour:02}:{date_obj.minute:02}:{date_obj.second:02}"
-        
+
     df.iloc[:, 1] = df.iloc[:, 1].apply(lambda x: format_date(x))
     df.to_csv(csv_file,index=False)
 
