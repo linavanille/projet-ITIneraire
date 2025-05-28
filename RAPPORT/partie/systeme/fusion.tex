@@ -1,1 +1,27 @@
-a completer
+L'IMU étant en coordonnées cartésienne et le récepteur GNSS en coordonnées sphériques, il faut les harmoniser avant de les fusionner
+
+Nous avons pu remarqué lors de notre phase d'analyse, que l'absence de cette harmonisation pouvait affecter la représentation finale
+
+Nous avons donc implémenté deux fonctions de conversion:
+\[
+\left\{
+\begin{array}{l}
+    x = (R + Altitude) * \sin(\theta) * \cos(\phi) \\
+    y = (R + Altitude) * \sin(\theta) * \sin(\phi) \\
+    y = (R + Altitude) * \cos(\theta)
+\end{array}
+\right.
+\]
+
+\[
+\left\{
+\begin{array}{l}
+    \theta = \arccos(\frac{z}{\sqrt{x^2 + y^2 +z^2}}) \\
+    \phi = \arctan(\frac{y}{x}) \\
+    Altitude = \sqrt{x^2 + y^2 +z^2} - R
+\end{array}
+\right.
+\]
+
+Ainsi, grâce au multiprocessing nous avons des acquisition qui arrivent au fur et à mesures ce qui nous permet de Synchroniser les acquisitions,
+et des fonctions de conversion afin d'avoir un filtrage "cohérent" par rapport aux équations dynamiques.

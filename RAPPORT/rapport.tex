@@ -3,10 +3,12 @@
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
 \usepackage{textcomp}
-
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{amsmath}
 \usepackage{geometry}
-  \geometry{hmargin = 3cm, vmargin = 1.5cm} 
-  
+  \geometry{hmargin = 3cm, vmargin = 1.5cm}
+
 %\usepackage{pseudocode}
 
 \usepackage{graphicx}
@@ -26,11 +28,11 @@
 \tableofcontents
 
 %-----------------------------------------------------
-\newpage 
+\newpage
 
 \section{Introdution}
 	\input{introduction/introduction}
-\newpage	 
+\newpage
 
 \section{Présentation des Capteurs à disposition}
 	\input{partie/capteurs/GPS/GPS.tex}
@@ -51,14 +53,14 @@
 	% 	\input{partie/capteurs/acquisition}
 	% \subsection{Filtrage des signaux bruts}
 	% 	\input{partie/capteurs/filtrage}
-		
+
 \newpage
 
 \section{Présentation du système d'acquisition complet}
 	\input{partie/systeme/presentation}
 	\subsection{Montage électrique}
 		\input{partie/systeme/montage}
-	\subsection{Description du produit}
+	\subsection{Description du produit: fonctionnalités et mode d’utilisation}
 		\input{partie/systeme/description}
 	\subsection{Synchronisation des capteurs}
 		\input{partie/systeme/synchro}
@@ -77,7 +79,7 @@
 		\input{partie/analyse/tracking}
 	\subsection{Analyse des résultats obtenus en cas de défaillance capteur}
 		\input{partie/analyse/defaillance}
-		
+
 \newpage
 \section{Traitement des données, mode spécial}
 	\input{partie/analyse/performance}
