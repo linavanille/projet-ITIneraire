@@ -1,5 +1,3 @@
-\subsection{Analyse des résultats obtenus en cas de défaillance capteur}
-
 Il peut arriver que certains capteurs, comme le GPS ou l’IMU, donnent des valeurs étranges à cause d’un signal instable, d’un environnement difficile (par exemple: immeubles, tunnel), ou même de bugs ponctuels. Pour éviter que ces erreurs ne faussent les résultats, nous avons mis en place un petit script qui détecte et enlève automatiquement les valeurs incohérentes.
 
 Le fichier \texttt{valeurs\_aberrantes.py} utilise une méthode statistique basée sur l’IQR (intervalle interquartile). En effet, il regarde l’altitude sur une petite fenêtre autour de chaque point, et si une valeur est trop différente de ses voisines, elle est considérée comme aberrante et supprimée. C’est utile pour supprimer des pics d’altitude qui n’ont pas de sens.
