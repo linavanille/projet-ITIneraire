@@ -1,12 +1,12 @@
-ITInéraire
+# ITInéraire
 
-Description
+## Description
 ITInéraire est un projet réalisé durant la seconde partie du semestre, visant à développer une application concurrente à Strava, dédiée à l’enregistrement et à l’analyse d’activités sportives via GPS.
 
 Le projet repose sur l’utilisation de capteurs physiques couplés à une Raspberry Pi, permettant de collecter, traiter et exploiter des données en temps réel afin de suivre les performances sportives.
 
 
-Objectifs du projet
+## Objectifs du projet
 Ce projet avait pour objectif de mettre en pratique plusieurs compétences :
 
 - Acquisition de données via capteurs
@@ -16,7 +16,7 @@ Ce projet avait pour objectif de mettre en pratique plusieurs compétences :
 - Intégration complète d’un système embarqué
 
 
-Architecture du projet
+## Architecture du projet
 Le projet est structuré en trois grandes parties :
 
 1. Capteurs et acquisition
@@ -34,14 +34,15 @@ Le projet est structuré en trois grandes parties :
 - Analyse des performances sportives
 - Affichage clair et exploitable des résultats
 
-Fonctionnalités principales
+
+## Fonctionnalités principales
 - Enregistrement d’activités sportives via GPS
 - Suivi des performances (distance, vitesse, etc.)
 - Traitement et correction des données capteurs
 - Visualisation des données dans une interface dédiée
 
 
-Déroulement du projet
+## Déroulement du projet
 Le projet s’est déroulé en plusieurs étapes :
 
 1. Acquisition de données via les capteurs  
@@ -52,12 +53,12 @@ Le projet s’est déroulé en plusieurs étapes :
 6. Intégration finale dans une application complète  
 
 
-Technologies utilisées
+## Technologies utilisées
 - Raspberry Pi
 - Capteurs (GPS, LiDAR.)
 - Programmation (Python)
 - Analyse statistique
 
 
-Installation
+## Installation
 git clone https://github.com/linavanille/projet-ITIneraire.git
